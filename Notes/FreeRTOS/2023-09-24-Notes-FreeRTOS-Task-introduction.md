@@ -67,7 +67,7 @@
 
 > UBaseType_t uxCriticalNesting;
 
-用于临界区嵌套计数。**ARM Cortex-M** 不使用该变量，取而代之的是一个全局的临界区嵌套计数。
+用于临界区嵌套计数。**ARM Cortex-M** 不使用该变量，取而代之的是一个 **全局的临界区嵌套计数**。
 
 > UBaseType_t uxTCBNumber;
 
@@ -145,25 +145,27 @@
 
  - **pxOverflowDelayedTaskList**：指向 **溢出延时链表**。如果唤醒时间 **xTickCount + xTicksToDelay** 会产生溢出，则将任务放入到该链表中。
 
-### Pending链表
+### PendingReady链表
 
 > PRIVILEGED_DATA static List_t xPendingReadyList;
 
-在 **ISR** 中，即使一个任务进入 **就绪态**，也无法将该任务放入 **pxReadyTasksLists** 链表中。我们需要一个机制来缓存该变化，待 **调度器** 恢复后再进行处理。
+在 **调度器** 挂起期间，若 **ISR** 需要将一个任务进入 **就绪态**，此时，不能将该任务直接放入 **pxReadyTasksLists** 链表中，而是需要暂时存放到 **xPendingReadyList** 链表中。
 
-因此 **Pending链表** 比较特殊，可以认为它是一个 **消息链表**，使用 **pxTCB->xEventListItem** 作为链表项。
+一旦 **调度器** 恢复运行，会立即把 **xPendingReadyList** 链表中的所有任务移动到合适的 **pxReadyTasksLists** 链表中。
+
+因为它使用 **pxTCB->xEventListItem** 作为链表项，所以也可以认为它是一个 **消息链表**。
 
 ### WaitingTermination链表
 
 > PRIVILEGED_DATA static List_t xTasksWaitingTermination;
 
-当前正在运行的任务被删除时，无法立即释放资源。此时需要使用该链表进行记录，以便后续在 **IDLE** 任务中进行释放操作。
+当前正在运行的任务如果需要被删除，无法立即释放资源。此时需要使用该链表进行记录，以便后续在 **IDLE** 任务中进行释放操作。
 
 ### Suspended链表
 
 > PRIVILEGED_DATA static List_t xSuspendedTaskList;
 
-跟踪被挂起的任务，即跟踪 **无限等待** 的任务。
+跟踪被 **挂起** 的任务，即跟踪 **与时间无关** 的任务。
 
 ### 其它变量
 
@@ -177,7 +179,7 @@
 
 > PRIVILEGED_DATA static volatile TickType_t xTickCount = ( TickType_t ) configINITIAL_TICK_COUNT;
 
-内核的滴答计数。
+内核的 **滴答计数**。
 
 > PRIVILEGED_DATA static volatile UBaseType_t uxTopReadyPriority = tskIDLE_PRIORITY;
 
@@ -213,25 +215,25 @@
 
 > PRIVILEGED_DATA static volatile UBaseType_t uxSchedulerSuspended = ( UBaseType_t ) pdFALSE;
 
-**调度器** 挂起的标志。
+记录 **调度器** 是否被挂起。
 
 > PRIVILEGED_DATA static configRUN_TIME_COUNTER_TYPE ulTaskSwitchedInTime = 0UL;
 
-记录 **FreeRTOS** 上次切换时的时间值。
+记录上次任务切换时的时间。
 
 > PRIVILEGED_DATA static volatile configRUN_TIME_COUNTER_TYPE ulTotalRunTime = 0UL;
 
-记录 **FreeRTOS** 总运行时间。
+记录总的运行时间。
 
 ## 任务的状态
 
 ### 状态描述
 
-在 **eTaskState** 中，对任务的状态进行了定义：
+**FreeRTOS** 从用户的维度定义了一个枚举 **eTaskState**，该枚举描述了任务的状态：
 
  - **Running**：
 
-    - **pxCurrentTCB** 所指向的任务。
+    - 当前 **正在执行** 的任务，始终由 **pxCurrentTCB** 所指向。
 
  - **Ready**：
 
@@ -241,17 +243,17 @@
 
  - **Blocked**：
 
-    - 属于 **pxDelayedTaskList** 链表的任务，该组任务可能被超时唤醒，也可能被事件唤醒。
+    - 属于 **pxDelayedTaskList** 链表的任务，该组任务可以被 **超时唤醒**，也可以被 **事件唤醒**。
 
-    - 属于 **pxOverflowDelayedTaskList** 链表的任务，该组任务可能被超时唤醒，也可能被事件唤醒。
+    - 属于 **pxOverflowDelayedTaskList** 链表的任务，该组任务可以被 **超时唤醒**，也可以被 **事件唤醒**。
 
-    - 属于 **xSuspendedTaskList** 链表，但正在等待唤醒消息的任务。
+    - 属于 **xSuspendedTaskList** 链表，但正在等待 **事件唤醒** 的任务。
 
-    - 属于 **xSuspendedTaskList** 链表，但正在等待任务通知的任务。
+    - 属于 **xSuspendedTaskList** 链表，但正在等待 **任务通知** 的任务。
 
  - **Suspended**：
 
-    - 属于 **xSuspendedTaskList** 链表，并且没有等待唤醒消息和任务通知。
+    - 属于 **xSuspendedTaskList** 链表，并且没有等待 **事件唤醒** 和 **任务通知** 的任务。
 
  - **Deleted**：
 
@@ -265,15 +267,15 @@
 
 ### 任务的状态和全局链表的关系
 
-需要注意 **任务的状态** 和 **全局链表** 是程序的两个维度，是不能直接对应的，两者的差异可以从函数 **eTaskGetState** 的处理逻辑中看出：
+需要注意 **任务的状态** 和 **全局链表** 是程序的两个维度，是不能直接对应的。两者的差异可以从函数 **eTaskGetState** 的处理逻辑中看出：
 
- - **任务的状态** 是从用户的维度来看待任务：
+ - **任务的状态** 是从用户的维度来看待任务，对应枚举值 **eTaskState**，其中：
 
-    - **Blocked** 是指会在一定条件下被内核唤醒的任务。
+    - **Blocked** 是指会在一定条件下被内核唤醒的任务，比如 **超时唤醒**，**事件唤醒**，**任务通知** 等。
 
-    - **Suspended** 是指永远不会被内核唤醒的任务。
+    - **Suspended** 是指永远不会被内核自动唤醒的任务。
 
- - **全局链表** 是从内核的维度来看待任务：
+ - **全局链表** 是从内核的维度来看待任务，其中：
 
     - 如果任务会在一段时间后被唤醒，就会挂载到链表 **pxDelayedTaskList** 或 **pxOverflowDelayedTaskList** 上。比如：
 
