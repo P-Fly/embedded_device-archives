@@ -49,6 +49,6 @@
             - [xPendingReadyList链表]
 
     - Keil
-        - [如何生成反汇编文件]
-        - [如何配置并行编译]
-        - [如何计算占用Flash和SRAM的大小]
+        - [如何生成反汇编文件](Notes/Keil/2023-09-24-Notes-Keil-How-to-output-disassembly-file.md)
+        - [如何配置并行编程](Notes/Keil/2023-09-24-Notes-Keil-How-to-parallel-build.md)
+        - [如何计算Flash和RAM的大小](Notes/Keil/2023-09-24-Notes-Keil-How-to-calculate-flash-and-memory-size.md)
