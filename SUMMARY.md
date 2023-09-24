@@ -20,14 +20,16 @@
     - FreeRTOS
         - List
             - [链表](Notes/FreeRTOS/2023-09-05-Notes-FreeRTOS-List.md)
+
         - Task
-            - [任务介绍]
+            - [任务介绍](Notes/FreeRTOS/2023-09-24-Notes-FreeRTOS-Task-introduction.md)
             - [任务的创建与删除]
             - [调度器的启动]
             - [任务的调度]
             - [系统时钟与任务延时]
             - [任务的挂起与恢复]
             - [空闲任务]
+
         - Inter-Task Communication
             - [任务间通信介绍]
             - [队列]
@@ -35,10 +37,13 @@
             - [信号量和互斥量]
             - [任务通知]
             - [流缓冲和消息缓冲]
+
         - Software Timer
             - [软件定时器]
+
         - Memory Management
             - [内存管理]
+
         - Misc
             - [中断优先级]
             - [xPendingReadyList链表]
