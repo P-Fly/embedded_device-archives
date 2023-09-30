@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.3.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>70</x>
+      <y>150</y>
+      <w>80</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=center
+减
+Descending</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>210</x>
+      <y>30</y>
+      <w>70</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=center
+空 Empty</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>430</x>
+      <y>30</y>
+      <w>50</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=center
+满 Full</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>150</x>
+      <y>70</y>
+      <w>210</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>bg=yellow
+valign=center
+halign=center
+Empty Ascending Stack
+--
+PUSH R0 : *(SP++) = R0;
+POP R0 : R0 = *(--SP);</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>150</x>
+      <y>140</y>
+      <w>210</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>bg=cyan
+valign=center
+halign=center
+Empty Descending Stack
+--
+PUSH R0 : *(SP--) = R0;
+POP R0 : R0 = *(++SP);</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>70</x>
+      <y>80</y>
+      <w>80</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=center
+增
+Ascending</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>360</x>
+      <y>70</y>
+      <w>210</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>bg=cyan
+valign=center
+halign=center
+Full Ascending Stack
+--
+PUSH R0 : *(++SP) = R0;
+POP R0 : R0 = *(SP--);</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>360</x>
+      <y>140</y>
+      <w>210</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>bg=yellow
+valign=center
+halign=center
+Full Descending Stack
+--
+PUSH R0 : *(--SP) = R0;
+POP R0 : R0 = *(SP++);</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>630</x>
+      <y>50</y>
+      <w>170</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>ARM 默认栈类型为
+Full Descending Stack
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>

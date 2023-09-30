@@ -45,6 +45,7 @@
             - [内存管理]
 
         - Misc
+            - [栈类型](Notes/FreeRTOS/2023-09-26-Notes-FreeRTOS-Stack-type.md)
             - [中断优先级]
             - [xPendingReadyList链表]
 
