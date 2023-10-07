@@ -39,7 +39,7 @@
 
 > ListItem_t xStateListItem;
 
-**状态链表** 的节点项，内核根据任务所处的不同状态，将任务插入到对应的 **任务链表** 中。
+**状态链表** 的节点项，内核根据任务所处的不同状态，将任务插入到对应的 **状态链表** 中。
 
 > ListItem_t xEventListItem;
 
@@ -59,7 +59,7 @@
 
 > StackType_t *pxEndOfStack;
 
-指向 **栈底** 的指针。
+指向 **栈空间** 的结束地址。
 
 下图展示了 **pxTopOfStack**，**pxEndOfStack**，**pxStack** 之间的关系。
 
@@ -149,11 +149,9 @@
 
 > PRIVILEGED_DATA static List_t xPendingReadyList;
 
-在 **调度器** 挂起期间，若 **ISR** 需要将一个任务进入 **就绪态**，此时，不能将该任务直接放入 **pxReadyTasksLists** 链表中，而是需要暂时存放到 **xPendingReadyList** 链表中。
+在 **调度器** 挂起期间，若 **ISR** 需要让一个任务进入 **就绪态**，此时，不能将该任务直接放入 **pxReadyTasksLists** 链表中，而是需要暂时存放到 **xPendingReadyList** 链表中。该链表使用 **pxTCB->xEventListItem** 作为链表项，所以也可以认为它是一个 **消息链表**。
 
 一旦 **调度器** 恢复运行，会立即把 **xPendingReadyList** 链表中的所有任务移动到合适的 **pxReadyTasksLists** 链表中。
-
-因为它使用 **pxTCB->xEventListItem** 作为链表项，所以也可以认为它是一个 **消息链表**。
 
 ### WaitingTermination链表
 
@@ -261,10 +259,6 @@
 
     - 不属于任何链表的任务。
 
-### 状态迁移
-
-![Task States][3]
-
 ### 任务的状态和全局链表的关系
 
 需要注意 **任务的状态** 和 **全局链表** 是程序的两个维度，是不能直接对应的。两者的差异可以从函数 **eTaskGetState** 的处理逻辑中看出：
@@ -288,6 +282,10 @@
         - 使用 **xQueueReceive** 等待消息接收，超时时间为 **portMAX_DELAY**。
 
         - 使用 **vTaskSuspend** 挂起任务。
+
+### 状态迁移
+
+![Task States][3]
 
  [1]: ./images/task_overview.jpg
  [2]: ./images/stack_instance.jpg
