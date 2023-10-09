@@ -104,7 +104,7 @@ BaseType_t xTaskCreate( TaskFunction_t pxTaskCode,
 ### 原型
 
 ```
-void vTaskDelete( TaskHandle_t xTaskToDelete )
+void vTaskDelete( TaskHandle_t xTaskToDelete );
 ```
 
 ### 参数

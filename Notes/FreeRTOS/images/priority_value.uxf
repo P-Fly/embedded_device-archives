@@ -1,0 +1,567 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.3.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>590</x>
+      <y>270</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 32</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>480</x>
+      <y>230</y>
+      <w>30</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=right
+0x0</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>460</x>
+      <y>140</y>
+      <w>80</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=right
+HW Priority</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>590</x>
+      <y>310</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 64</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>590</x>
+      <y>350</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 96</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>590</x>
+      <y>390</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 128</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>590</x>
+      <y>430</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 160</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>590</x>
+      <y>470</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 192</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>590</x>
+      <y>510</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 224</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>590</x>
+      <y>230</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 0</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>480</x>
+      <y>250</y>
+      <w>30</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=right
+0x1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>480</x>
+      <y>270</y>
+      <w>30</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=right
+0x2</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>480</x>
+      <y>290</y>
+      <w>30</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=right
+0x3</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>480</x>
+      <y>310</y>
+      <w>30</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=right
+0x4</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>480</x>
+      <y>330</y>
+      <w>30</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=right
+0x5</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>480</x>
+      <y>350</y>
+      <w>30</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=right
+0x6</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>480</x>
+      <y>370</y>
+      <w>30</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=right
+0x7</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>580</x>
+      <y>140</y>
+      <w>120</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=center
+3Bit Priority Value</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>730</x>
+      <y>140</y>
+      <w>130</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=center
+4Bit Priority Value</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>750</x>
+      <y>230</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 0</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>750</x>
+      <y>250</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 16</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>750</x>
+      <y>270</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 32</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>750</x>
+      <y>310</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 64</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>750</x>
+      <y>290</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 48</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>750</x>
+      <y>330</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 80</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>750</x>
+      <y>350</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 96</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>750</x>
+      <y>370</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 112</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>750</x>
+      <y>390</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 128</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>750</x>
+      <y>410</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 144</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>750</x>
+      <y>430</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 160</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>750</x>
+      <y>470</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 192</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>750</x>
+      <y>450</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 176</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>750</x>
+      <y>490</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 208</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>750</x>
+      <y>510</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 224</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>750</x>
+      <y>530</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>Priority = 240</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>480</x>
+      <y>390</y>
+      <w>30</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=right
+0x8</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>480</x>
+      <y>410</y>
+      <w>30</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=right
+0x9</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>480</x>
+      <y>430</y>
+      <w>30</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=right
+0xA</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>480</x>
+      <y>450</y>
+      <w>30</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=right
+0xB</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>480</x>
+      <y>470</y>
+      <w>30</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=right
+0xC</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>480</x>
+      <y>490</y>
+      <w>30</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=right
+0xD</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>480</x>
+      <y>510</y>
+      <w>30</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=right
+0xE</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>480</x>
+      <y>530</y>
+      <w>30</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=right
+0xF</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>440</x>
+      <y>210</y>
+      <w>120</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=center
+HardFault = -1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>460</x>
+      <y>190</y>
+      <w>80</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=center
+NMI = -2</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>460</x>
+      <y>170</y>
+      <w>80</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>valign=center
+halign=center
+Reset = -3</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>420</x>
+      <y>150</y>
+      <w>40</w>
+      <h>430</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;-&gt;&gt;&gt;
+m2=高
+m1=低</panel_attributes>
+    <additional_attributes>10.0;410.0;10.0;10.0</additional_attributes>
+  </element>
+</diagram>
