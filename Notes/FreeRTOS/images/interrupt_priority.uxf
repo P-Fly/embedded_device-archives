@@ -83,7 +83,7 @@ halign=center</panel_attributes>
     <panel_attributes>valign=center
 halign=left
 由 FreeRTOS 管理
-可以调用中断安全函数(以 FromISR 后缀的系统函数）</panel_attributes>
+可以调用中断安全函数 (以 FromISR 后缀的系统函数)</panel_attributes>
     <additional_attributes/>
   </element>
   <element>

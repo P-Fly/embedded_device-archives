@@ -46,8 +46,8 @@
 
         - Misc
             - [栈类型](Notes/FreeRTOS/2023-09-26-Notes-FreeRTOS-Stack-type.md)
-            - [中断优先级]
-            - [xPendingReadyList链表]
+            - [中断优先级](Notes/FreeRTOS/2023-10-22-Notes-FreeRTOS-Interrupt-priority.md)
+            - [特殊链表 - xPendingReadyList](Notes/FreeRTOS/2023-10-22-Notes-FreeRTOS-List-xpendingreadylist.md)
 
     - Keil
         - [如何生成反汇编文件](Notes/Keil/2023-09-24-Notes-Keil-How-to-output-disassembly-file.md)
