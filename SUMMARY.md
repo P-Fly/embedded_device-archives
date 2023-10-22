@@ -42,7 +42,7 @@
             - [软件定时器]
 
         - Memory Management
-            - [内存管理]
+            - [内存管理](Notes/FreeRTOS/2023-10-21-Notes-FreeRTOS-Memory-management.md)
 
         - Misc
             - [栈类型](Notes/FreeRTOS/2023-09-26-Notes-FreeRTOS-Stack-type.md)
