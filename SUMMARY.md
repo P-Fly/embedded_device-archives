@@ -27,7 +27,7 @@
             - [任务的创建与删除](Notes/FreeRTOS/2023-09-25-Notes-FreeRTOS-Task-create-and-delete.md)
             - [调度器的启动](Notes/FreeRTOS/2023-10-08-Notes-FreeRTOS-Task-start-scheduler.md)
             - [任务的调度](Notes/FreeRTOS/2023-10-20-Notes-FreeRTOS-Task-context-switch.md)
-            - [系统时钟与任务延时]
+            - [系统时钟](Notes/FreeRTOS/2023-10-29-Notes-FreeRTOS-Task-systick.md)
             - [任务的挂起与恢复]
             - [空闲任务]
 
