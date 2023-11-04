@@ -29,7 +29,7 @@
             - [调度器的挂起](Notes/FreeRTOS/2023-10-29-Notes-FreeRTOS-Task-suspend-scheduler.md)
             - [系统时钟](Notes/FreeRTOS/2023-10-29-Notes-FreeRTOS-Task-systick.md)
             - [任务的调度](Notes/FreeRTOS/2023-10-20-Notes-FreeRTOS-Task-context-switch.md)
-            - [任务的延时]
+            - [任务的延时](Notes/FreeRTOS/2023-11-04-Notes-FreeRTOS-Task-delay.md)
             - [任务的挂起与恢复]
             - [空闲任务]
 
