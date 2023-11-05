@@ -30,7 +30,7 @@
             - [系统时钟](Notes/FreeRTOS/2023-10-29-Notes-FreeRTOS-Task-systick.md)
             - [任务的调度](Notes/FreeRTOS/2023-10-20-Notes-FreeRTOS-Task-context-switch.md)
             - [任务的延时](Notes/FreeRTOS/2023-11-04-Notes-FreeRTOS-Task-delay.md)
-            - [任务的挂起与恢复]
+            - [任务的挂起与恢复](Notes/FreeRTOS/2023-11-04-Notes-FreeRTOS-Task-suspend.md)
             - [空闲任务]
 
         - Inter-Task Communication
