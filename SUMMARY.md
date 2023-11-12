@@ -31,7 +31,7 @@
             - [任务的调度](Notes/FreeRTOS/2023-10-20-Notes-FreeRTOS-Task-context-switch.md)
             - [任务的延时](Notes/FreeRTOS/2023-11-04-Notes-FreeRTOS-Task-delay.md)
             - [任务的挂起与恢复](Notes/FreeRTOS/2023-11-04-Notes-FreeRTOS-Task-suspend.md)
-            - [空闲任务]
+            - [空闲任务](Notes/FreeRTOS/2023-11-06-Notes-FreeRTOS-Task-idle-function.md)
 
         - Inter-Task Communication
             - [任务间通信介绍]
