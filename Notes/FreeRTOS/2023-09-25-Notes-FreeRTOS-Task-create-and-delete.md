@@ -16,6 +16,10 @@
 
 ## xTaskCreate
 
+### 功能
+
+创建一个新的任务，并将其添加到准备运行的任务列表中。
+
 ### 原型
 
 ```
@@ -47,7 +51,7 @@ BaseType_t xTaskCreate( TaskFunction_t pxTaskCode,
 
 > UBaseType_t uxPriority
 
-指定任务优先级。
+指定任务优先级。支持 **MPU** 的系统可以通过设置位 **portPRIVILEGE_BIT** 来选择在 **privileged mode** 下创建任务。
 
 > TaskHandle_t * const pxCreatedTask
 
@@ -59,7 +63,7 @@ BaseType_t xTaskCreate( TaskFunction_t pxTaskCode,
 
  - 申请栈和TCB_t
 
-    **FreeRTOS** 会分别申请内存空间 **pxNewTCB** 和 **pxStack**。申请顺序是由宏 **portSTACK_GROWTH** 决定，其目的是保证 **栈不会增长到TCB中**。
+    内核会分别申请内存空间 **pxNewTCB** 和 **pxStack**。申请顺序是由宏 **portSTACK_GROWTH** 决定，其目的是保证栈不会增长到TCB中。
 
  - 计算栈顶地址
 
@@ -100,6 +104,10 @@ BaseType_t xTaskCreate( TaskFunction_t pxTaskCode,
 ![xTaskCreate stack view][5]
 
 ## vTaskDelete
+
+### 功能
+
+将任务从所有的任务列表和事件列表中删除。
 
 ### 原型
 

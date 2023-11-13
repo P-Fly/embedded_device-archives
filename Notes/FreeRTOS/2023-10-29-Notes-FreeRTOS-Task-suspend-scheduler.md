@@ -4,7 +4,11 @@
 
 ## vTaskSuspendAll
 
-需要注意不能在调度器挂起的状态下调用可能导致上下文切换的函数，比如 **vTaskDelay**，**vTaskDelayUntil**，**xQueueSend** 等。
+### 功能
+
+在不禁用中断的场景下挂起调度器，此时不会发生上下文切换。
+
+需要注意也不能在该状态下调用可能导致上下文切换的函数，比如 **vTaskDelay**，**vTaskDelayUntil**，**xQueueSend** 等。
 
 ### 原型
 
@@ -14,7 +18,11 @@ void vTaskSuspendAll( void );
 
 ## xTaskResumeAll
 
-需要注意该函数不会取消由 **vTaskSuspend** 挂起的任务。
+### 功能
+
+恢复调度器。
+
+需要注意该函数不会恢复由 **vTaskSuspend** 挂起的任务。
 
 ### 原型
 

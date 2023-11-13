@@ -1,6 +1,10 @@
-# 任务的挂起与恢复
+# 任务的挂起
 
 ## vTaskSuspend
+
+### 功能
+
+挂起一个任务。
 
 需要注意该函数没有累积性，即使多次调用 **vTaskSuspend**，但只要调用一次 **vTaskResume** 就能恢复任务。
 
@@ -13,7 +17,7 @@ void vTaskSuspend( TaskHandle_t xTaskToSuspend );
 ### 参数
 
 > TaskHandle_t xTaskToSuspend
- 
+
 需要挂起的任务句柄。
 
 ## vTaskResume

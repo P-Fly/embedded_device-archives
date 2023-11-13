@@ -2,6 +2,10 @@
 
 ## vTaskStartScheduler
 
+### 功能
+
+启动内核调度器。
+
 ### 原型
 
 ```
@@ -174,6 +178,18 @@ void vTaskStartScheduler( void );
     ```
 
     退出 **SVC Exception** 模式，进入 **Thread mode**。该异常退出时硬件使用 **PSP** 寄存器出栈，后续在任务中也继续使用 **PSP** 寄存器。
+
+## vTaskEndScheduler
+
+### 功能
+
+停止内核调度器。
+
+### 原型
+
+```
+void vTaskEndScheduler( void );
+```
 
  [1]: ./images/vTaskStartScheduler.jpg
  [2]: ./images/basepri.jpg

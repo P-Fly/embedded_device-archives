@@ -10,8 +10,7 @@
       <w>180</w>
       <h>40</h>
     </coordinates>
-    <panel_attributes>bg=green
-从任务链表中删除</panel_attributes>
+    <panel_attributes>从任务链表中删除</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
@@ -22,8 +21,7 @@
       <w>180</w>
       <h>40</h>
     </coordinates>
-    <panel_attributes>bg=green
-从事件链表中删除</panel_attributes>
+    <panel_attributes>从事件链表中删除</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
@@ -35,7 +33,6 @@
       <h>60</h>
     </coordinates>
     <panel_attributes>type=decision
-bg=yellow
 是否是当前任务
 待删除</panel_attributes>
     <additional_attributes/>
@@ -48,8 +45,7 @@ bg=yellow
       <w>180</w>
       <h>40</h>
     </coordinates>
-    <panel_attributes>bg=green
-移至终止链表
+    <panel_attributes>移至终止链表
 在Idle任务中释放资源</panel_attributes>
     <additional_attributes/>
   </element>
@@ -61,8 +57,7 @@ bg=yellow
       <w>180</w>
       <h>40</h>
     </coordinates>
-    <panel_attributes>bg=green
-释放资源</panel_attributes>
+    <panel_attributes>释放资源</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
@@ -73,8 +68,7 @@ bg=yellow
       <w>180</w>
       <h>40</h>
     </coordinates>
-    <panel_attributes>bg=green
-计算下一个预期唤醒时间</panel_attributes>
+    <panel_attributes>计算下一个预期唤醒时间</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
@@ -164,8 +158,7 @@ m2=N</panel_attributes>
       <w>180</w>
       <h>40</h>
     </coordinates>
-    <panel_attributes>bg=green
-手动调度任务
+    <panel_attributes>手动调度任务
 portYIELD_WITHIN_API</panel_attributes>
     <additional_attributes/>
   </element>

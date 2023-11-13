@@ -2,6 +2,10 @@
 
 ## vTaskDelay
 
+### 功能
+
+将任务阻塞一段时间。
+
 ### 原型
 
 ```
@@ -15,6 +19,8 @@ void vTaskDelay( const TickType_t xTicksToDelay );
 需要阻塞的系统时钟节拍数。可以用 **pdMS_TO_TICKS** 将需要延时的毫秒值转换为系统时钟的节拍数。
 
 ## vTaskDelayUntil
+
+### 功能
 
 将任务阻塞到指定的时间。该函数可以被周期性的任务调用，以确保恒定的执行频率。
 
@@ -37,6 +43,8 @@ void vTaskDelayUntil( TickType_t * const pxPreviousWakeTime, const TickType_t xT
 周期循环的时钟节拍数。可以用 **pdMS_TO_TICKS** 将需要延时的毫秒值转换为系统时钟的节拍数。
 
 ## xTaskAbortDelay
+
+### 功能
 
 强制任务退出阻塞状态，进入就绪状态。
 

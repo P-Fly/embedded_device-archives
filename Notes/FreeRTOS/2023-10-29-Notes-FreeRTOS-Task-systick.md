@@ -4,7 +4,7 @@
 
 ## Setup SysTick
 
-**FreeRTOS** 提供了一些宏来配置 **SysTick** 的频率：
+内核在 **vPortSetupTimerInterrupt** 中使用了一些宏来配置 **SysTick** 的频率：
 
  - **configCPU_CLOCK_HZ**：**CPU** 的硬件时钟频率，该频率一般是晶振直接提供或通过锁相环锁定后的值。
 
@@ -16,6 +16,8 @@
 
 ## SysTick Exception
 
+### 功能
+
 在 **临界状态** 下执行 **xTaskIncrementTick**，并根据执行结果决定是否需要进行任务切换。
 
 ### 原型
@@ -25,6 +27,10 @@ void xPortSysTickHandler( void );
 ```
 
 ## xTaskIncrementTick
+
+### 功能
+
+提供系统时钟节拍服务的具体实现。
 
 ### 原型
 
