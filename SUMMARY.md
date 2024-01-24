@@ -56,3 +56,6 @@
         - [如何生成反汇编文件](Notes/Keil/2023-09-24-Notes-Keil-How-to-output-disassembly-file.md)
         - [如何配置并行编程](Notes/Keil/2023-09-24-Notes-Keil-How-to-parallel-build.md)
         - [如何计算Flash和RAM的大小](Notes/Keil/2023-09-24-Notes-Keil-How-to-calculate-flash-and-memory-size.md)
+
+    - Encode
+        - [Base64介绍](Notes/Encode/2024-01-20-Notes-Encode-Base64-introduction.md)
