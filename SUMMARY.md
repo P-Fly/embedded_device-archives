@@ -35,7 +35,7 @@
 
         - Inter-Task Communication
             - [队列](Notes/FreeRTOS/2024-10-06-Notes-FreeRTOS-ITC-queue.md)
-            - [队列集]
+            - [队列集](Notes/FreeRTOS/2024-10-07-Notes-FreeRTOS-ITC-queue-set.md)
             - [信号量和互斥量]
             - [任务通知]
             - [流缓冲和消息缓冲]
