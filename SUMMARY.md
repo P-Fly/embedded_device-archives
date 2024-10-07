@@ -34,8 +34,7 @@
             - [空闲任务](Notes/FreeRTOS/2023-11-06-Notes-FreeRTOS-Task-idle-function.md)
 
         - Inter-Task Communication
-            - [任务间通信介绍]
-            - [队列]
+            - [队列](Notes/FreeRTOS/2024-10-06-Notes-FreeRTOS-ITC-queue.md)
             - [队列集]
             - [信号量和互斥量]
             - [任务通知]

@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.3.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>560</x>
+      <y>20</y>
+      <w>20</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>type=initial</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>420</x>
+      <y>80</y>
+      <w>300</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>bg=green
+进入临界区
+portSET_INTERRUPT_MASK_FROM_ISR</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>460</x>
+      <y>160</y>
+      <w>220</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>bg=green
+type=decision
+是否队列未满或覆盖式入队</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>20</x>
+      <y>20</y>
+      <w>220</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>configUSE_QUEUE_SETS = 0
+configUSE_MUTEXES = 0</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>420</x>
+      <y>280</y>
+      <w>300</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>bg=green
+将数据复制到队列中
+prvCopyDataToQueue</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>400</x>
+      <y>820</y>
+      <w>340</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>bg=green
+离开临界区
+portCLEAR_INTERRUPT_MASK_FROM_ISR</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>400</x>
+      <y>600</y>
+      <w>340</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>bg=green
+valign=center
+halign=left
+xTaskRemoveFromEventList
+--
+1. 将等待任务从xTasksWaitingToReceive链表中移出
+2. 将等待任务移动到等待链表或xPendingReadyList中
+3. 重新设置唤醒时间 xNextTaskUnblockTime
+
+--
+根据唤醒任务优先级决定是否需要产生任务调度
+*pxHigherPriorityTaskWoken = pdTRUE</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>460</x>
+      <y>480</y>
+      <w>220</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>bg=green
+type=decision
+是否有任务在等待接收数据</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>560</x>
+      <y>20</y>
+      <w>30</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;60.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>560</x>
+      <y>110</y>
+      <w>30</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;50.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>560</x>
+      <y>230</y>
+      <w>40</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m2=Y</panel_attributes>
+    <additional_attributes>10.0;50.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>560</x>
+      <y>550</y>
+      <w>40</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m2=Y</panel_attributes>
+    <additional_attributes>10.0;50.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>560</x>
+      <y>850</y>
+      <w>30</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;60.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>670</x>
+      <y>190</y>
+      <w>280</w>
+      <h>650</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m2=N</panel_attributes>
+    <additional_attributes>260.0;630.0;260.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>510</x>
+      <y>930</y>
+      <w>120</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>style=wordwrap
+return pdPASS</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>850</x>
+      <y>930</y>
+      <w>170</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>style=wordwrap
+return errQUEUE_FULL</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>560</x>
+      <y>910</y>
+      <w>20</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>type=final</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>920</x>
+      <y>910</y>
+      <w>20</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>type=final</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>560</x>
+      <y>730</y>
+      <w>30</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;90.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>760</x>
+      <y>820</y>
+      <w>340</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>bg=green
+离开临界区
+portCLEAR_INTERRUPT_MASK_FROM_ISR</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>920</x>
+      <y>850</y>
+      <w>30</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;60.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLSpecialState</id>
+    <coordinates>
+      <x>460</x>
+      <y>360</y>
+      <w>220</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>bg=green
+type=decision
+队列是否上锁</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLState</id>
+    <coordinates>
+      <x>30</x>
+      <y>440</y>
+      <w>340</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>bg=green
+增加锁定计数，持有锁的任务会在解锁时唤醒
+处于xTasksWaitingToReceive链表上的任务</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>190</x>
+      <y>390</y>
+      <w>290</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m2=Y</panel_attributes>
+    <additional_attributes>10.0;50.0;10.0;10.0;270.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>560</x>
+      <y>310</y>
+      <w>30</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;50.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>190</x>
+      <y>470</y>
+      <w>400</w>
+      <h>370</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>380.0;350.0;380.0;310.0;10.0;310.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>560</x>
+      <y>430</y>
+      <w>40</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m2=N</panel_attributes>
+    <additional_attributes>10.0;50.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>190</x>
+      <y>510</y>
+      <w>400</w>
+      <h>330</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m2=N</panel_attributes>
+    <additional_attributes>380.0;310.0;380.0;270.0;10.0;270.0;10.0;10.0;270.0;10.0</additional_attributes>
+  </element>
+</diagram>
