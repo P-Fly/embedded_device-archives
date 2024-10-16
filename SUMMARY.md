@@ -38,10 +38,10 @@
             - [队列集](Notes/FreeRTOS/2024-10-07-Notes-FreeRTOS-ITC-queue-set.md)
             - [信号量和互斥量](Notes/FreeRTOS/2024-10-08-Notes-FreeRTOS-ITC-semaphore-and-mutex.md)
             - [任务通知](Notes/FreeRTOS/2024-10-15-Notes-FreeRTOS-ITC-task-notifications.md)
-            - [流缓冲和消息缓冲](Notes/2024-10-15-Notes-FreeRTOS-ITC-stream-buffer.md)
+            - [流缓冲和消息缓冲](Notes/FreeRTOS/2024-10-15-Notes-FreeRTOS-ITC-stream-buffer.md)
 
         - Software Timer
-            - [软件定时器]
+            - [软件定时器](Notes/FreeRTOS/2024-10-17-Notes-FreeRTOS-Timer-software-timers.md)
 
         - Memory Management
             - [内存管理](Notes/FreeRTOS/2023-10-21-Notes-FreeRTOS-Memory-management.md)
