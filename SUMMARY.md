@@ -58,3 +58,7 @@
 
     - Encode
         - [Base64介绍](Notes/Encode/2024-01-20-Notes-Encode-Base64-introduction.md)
+
+- Design
+    - [如何压缩日志以减少数据传输](Design/compress_logs/2024-10-26-Design-How-to-compress-logs-to-reduce-data-transmission.md)
+    - [如何检测栈溢出](Design/check_stack_overflow/2024-11-09-Design-How-to-check-the-stack-overflow.md)
