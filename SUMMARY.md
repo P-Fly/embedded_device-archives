@@ -23,6 +23,7 @@
 ---
 
 - Notes
+
     - FreeRTOS
         - List
             - [链表](Notes/FreeRTOS/2023-09-05-Notes-FreeRTOS-List.md)
@@ -63,6 +64,10 @@
 
     - Encode
         - [Base64介绍](Notes/Encode/2024-01-20-Notes-Encode-Base64-introduction.md)
+
+    - Zephyr
+        - Introduction
+            - [入门指南](Notes/Zephyr/2025-08-13-Notes-Zephyr-Getting-started-guide.md)
 
 - Design
     - [如何压缩日志以减少数据传输](Design/compress_logs/2024-10-26-Design-How-to-compress-logs-to-reduce-data-transmission.md)
