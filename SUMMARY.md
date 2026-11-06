@@ -17,11 +17,6 @@
 
 ---
 
-- 数据手册
-    - [STM32WB55](Datasheet/STM32WB55/)
-
----
-
 - Notes
 
     - FreeRTOS
