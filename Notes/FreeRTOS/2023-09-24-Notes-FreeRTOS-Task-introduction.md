@@ -1,299 +1,148 @@
 # 任务介绍
 
-**FreeRTOS** 是一个轻量级实时操作系统。它由一个个独立的 **任务** 组成，而每个 **任务** 都有自己独立的 **数据结构** 和 **代码**。因此我们将从全局的角度出发对 **任务** 进行描述。
+FreeRTOS 使用任务组织应用，每个任务都有自己的任务控制块、栈和执行上下文。调度器通过保存与恢复上下文，使多个任务交替使用处理器。
 
 ## 任务的定义
 
-在维基百科中，对 **Task** 的定义如下：
+任务是内核调度的基本执行单元。在常见的共享地址空间模型中，可以将其类比为线程：每个任务有独立的栈和寄存器上下文，程序代码、全局数据及外设资源则可以共享。
 
-> In computing, a task is a unit of execution or a unit of work.
-> ...
-> In the sense of "unit of execution", in some operating systems, a task is synonymous with a process, and in others with a thread.
-> ...
+多个任务实例可以使用同一个入口函数，分别通过参数和各自的局部变量保存工作状态。创建任务时传入的参数指针按值传递，其指向对象的生命周期及共享访问由应用管理。
 
-**Task** 就是我们平时在程序中使用的 **Process** 或 **Thread**。当然，由于嵌入式系统与我们平时使用的 **PC** 系统相比，硬件结构要简单的多，编程模型也相对来说比较简单。因此，在 **FreeRTOS** 中没有对 **Process** 和 **Thread** 进行区分，而是统一使用 **Task** 作为基本的执行单元。
-
-在此，我们引用 **FreeRTOS** 官网上的话来描述：
-
-> A real time application that uses an RTOS can be structured as a set of independent tasks. Each task executes within its own context with no coincidental dependency on other tasks within the system or the RTOS scheduler itself. Only one task within the application can be executing at any point in time and the real time RTOS scheduler is responsible for deciding which task this should be. The RTOS scheduler may therefore repeatedly start and stop each task (swap each task in and out) as the application executes.
+任务被切出时，port 保存恢复执行所需的上下文；再次获得 CPU 后，从先前的执行位置继续运行。下图表示任务、上下文与调度器的关系。
 
 ![Task Overview][1]
 
 ## 实时调度
 
-**实时操作系统** 和 **通用操作系统** 的调度原理都差不多，但两者的目标截然不同。差异主要体现在调度策略上，**实时操作系统** 旨在对现实世界的事件作出及时响应，通常这些事件有截止时间的要求，**实时操作系统** 必须在此之前响应该事件。
+实时系统关注事件响应和任务执行是否满足截止时间。任务优先级决定就绪任务之间的选择次序，应用还需要分析执行时间、阻塞时间、中断延迟及处理器负载。
 
-**FreeRTOS** 是利用 **优先级** 的设置来实现这一目标的，系统保证 **最高优先级任务** 能获得当前的时间片。如果存在多个能够运行的同等最高优先级任务，则在这些任务之间公平地分配处理时间。
+调度器实际选择任务时，选取最高有效优先级的就绪任务。任务等待事件或延时时，退出可运行集合，其他就绪任务便有机会运行。
 
-但是 **实时操作系统** 的实时调度并非万能，无法改变时间的快慢，开发者必须确保时序在所选任务优先级的设定下是可行的。
+| 配置 | 调度行为 |
+| --- | --- |
+| `configUSE_PREEMPTION = 1` | 更高优先级任务就绪时，可以触发抢占；临界区、ISR 执行和调度器挂起等情况会影响实际切换时机 |
+| `configUSE_PREEMPTION = 0` | 使用协作式调度，当前任务通常在主动让出、阻塞或挂起等调度点交出处理器 |
+| 同时启用抢占和 `configUSE_TIME_SLICING = 1` | tick 可触发同优先级就绪任务轮转；各任务实际占用的 CPU 时间仍取决于其执行、阻塞及中断情况 |
+
+关闭时间片时，同优先级任务仍可因主动让出或阻塞发生切换。实时性需要结合这些条件和应用的时序预算验证。
 
 ## 主要数据结构
 
 ### TCB_t
 
-**FreeRTOS** 的核心是 **任务管理**，每个任务都有一些数据需要存储。**FreeRTOS** 把这些数据集中到一个数据结构中进行管理，这个数据结构就是结构体 **TCB_t**，被称作 **Task Control Block**。
+每个任务都有自己的任务控制块 `TCB_t`（Task Control Block），用于记录上下文位置、链表节点、优先级及各项可选功能的数据。成员布局由内核实现、port 和配置共同决定；应用通过任务句柄及公开 API 操作任务。
 
-每个任务都有各自独立的 **TCB_t**，一旦任务被建立，该结构体将被赋值。当任务处于非运行状态时，**FreeRTOS** 会用该结构体来保存任务的状态。当任务重新运行时，该结构体能确保任务从被中断的位置继续执行。
+| 成员声明 | 用途 | 出现条件 |
+| --- | --- | --- |
+| `volatile StackType_t *pxTopOfStack;` | 保存任务上下文对应的栈指针，必须为第一成员，供 port 保存与恢复上下文 | 始终存在 |
+| `xMPU_SETTINGS xMPUSettings;` | 保存 port 定义的 MPU 设置，存在时为第二成员 | `portUSING_MPU_WRAPPERS = 1` |
+| `ListItem_t xStateListItem;` | 用于就绪、延时、挂起及待清理等状态管理链表 | 始终存在 |
+| `ListItem_t xEventListItem;` | 用于事件等待链表或 `xPendingReadyList` | 始终存在 |
+| `UBaseType_t uxPriority;` | 当前有效优先级，可能已受优先级继承影响；0 为最低优先级 | 始终存在 |
+| `StackType_t *pxStack;` | 栈存储区的起始地址，即低地址端 | 始终存在 |
+| `char pcTaskName[ configMAX_TASK_NAME_LEN ];` | 调试用任务名称，最多保存长度配置减 1 个字符，保留字符串终止符 | 始终存在 |
+| `StackType_t *pxEndOfStack;` | 记录栈高地址端；栈向低地址增长时，保存按 port 要求对齐后的高端位置 | 栈向高地址增长，或 `configRECORD_STACK_HIGH_ADDRESS = 1` |
+| `UBaseType_t uxCriticalNesting;` | 任务级临界区嵌套计数 | `portCRITICAL_NESTING_IN_TCB = 1` |
+| `UBaseType_t uxTCBNumber;` | 创建时保存全局任务变化计数的快照，供调试追踪使用 | `configUSE_TRACE_FACILITY = 1` |
+| `UBaseType_t uxTaskNumber;` | 供应用或追踪工具设置和读取的任务编号 | `configUSE_TRACE_FACILITY = 1` |
+| `UBaseType_t uxBasePriority;` | 优先级继承前的基础优先级 | `configUSE_MUTEXES = 1` |
+| `UBaseType_t uxMutexesHeld;` | 持有的互斥量数量，参与优先级恢复处理 | `configUSE_MUTEXES = 1` |
+| `TaskHookFunction_t pxTaskTag;` | 应用任务标签，可通过 `xTaskCallApplicationTaskHook()` 调用关联函数 | `configUSE_APPLICATION_TASK_TAG = 1` |
+| `void *pvThreadLocalStoragePointers[ configNUM_THREAD_LOCAL_STORAGE_POINTERS ];` | 应用的任务本地指针槽，所指对象的分配、生命周期和释放由应用管理 | `configNUM_THREAD_LOCAL_STORAGE_POINTERS > 0` |
+| `configRUN_TIME_COUNTER_TYPE ulRunTimeCounter;` | 按运行统计时钟累计归属于该任务的计数差值，单位由统计时钟决定 | `configGENERATE_RUN_TIME_STATS = 1` |
+| `configTLS_BLOCK_TYPE xTLSBlock;` | C 运行库 TLS 块，内核在初始化、切换和清理路径调用对应钩子 | `configUSE_NEWLIB_REENTRANT = 1` 或 `configUSE_C_RUNTIME_TLS_SUPPORT = 1` |
+| `volatile uint32_t ulNotifiedValue[ configTASK_NOTIFICATION_ARRAY_ENTRIES ];` | 各通知索引的值 | `configUSE_TASK_NOTIFICATIONS = 1` |
+| `volatile uint8_t ucNotifyState[ configTASK_NOTIFICATION_ARRAY_ENTRIES ];` | 各通知索引的状态，与通知值分别维护 | `configUSE_TASK_NOTIFICATIONS = 1` |
+| `uint8_t ucStaticallyAllocated;` | 区分栈和 TCB 的静态、动态来源，供删除路径决定释放哪些内存 | `tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE != 0` |
+| `uint8_t ucDelayAborted;` | 记录事件等待已被 `xTaskAbortDelay()` 中止，供后续超时检查消费 | `INCLUDE_xTaskAbortDelay = 1` |
+| `int iTaskErrno;` | 保存该任务的 errno，切换时与当前上下文的 `FreeRTOS_errno` 交换 | `configUSE_POSIX_ERRNO = 1` |
 
-**TCB_t** 的成员如下：
+例如，`portable/RVDS/ARM_CM4F` 使用 port 内的全局临界嵌套计数；是否把计数保存在 TCB 中，应由 `portCRITICAL_NESTING_IN_TCB` 判断。运行统计可能计入任务运行期间的 ISR 耗时，具体取决于统计时钟及采集方式。互斥量的优先级继承用于减轻优先级反转，实时预算还需考虑持锁时间和多锁依赖。
 
-> volatile StackType_t *pxTopOfStack;
-
-指向 **栈顶** 的指针，该成员变量必须放在数据结构第一个元素的位置。在汇编中会利用该指针进行压栈和出栈操作，比如在 **xPortPendSVHandler** 中的实现。
-
-> xMPU_SETTINGS xMPUSettings;
-
-内存保护单元的配置项，记录了各个内存段的基地址和访问属性。
-
-> ListItem_t xStateListItem;
-
-**状态链表** 的节点项，内核根据任务所处的不同状态，将任务插入到对应的 **状态链表** 中。
-
-> ListItem_t xEventListItem;
-
-**事件链表** 的节点项，内核根据任务所依赖的不同事件，将其插入到对应的 **事件链表** 中。
-
-> UBaseType_t uxPriority;
-
-任务的优先级，**0为最低优先级**。
-
-> StackType_t *pxStack;
-
-指向 **栈空间** 的起始地址。
-
-> char pcTaskName[ configMAX_TASK_NAME_LEN ];
-
-任务的名称。
-
-> StackType_t *pxEndOfStack;
-
-指向 **栈空间** 的结束地址。
-
-下图展示了 **pxTopOfStack**，**pxEndOfStack**，**pxStack** 之间的关系。
+下图展示栈向低地址和高地址增长时的地址关系。`pxTopOfStack` 表示最近保存的上下文位置；任务正在运行时，实际 SP 由处理器维护。`pxEndOfStack` 是否保存在 TCB 中取决于上表的条件。
 
 ![Stack Instance][2]
 
-> UBaseType_t uxCriticalNesting;
-
-用于临界区嵌套计数。**ARM Cortex-M** 不使用该变量，取而代之的是一个 **全局的临界区嵌套计数**。
-
-> UBaseType_t uxTCBNumber;
-
-调试追踪时使用，存储一个每次创建 **TCB** 时递增的数字。
-
-> UBaseType_t uxTaskNumber;
-
-调试追踪时使用，用户可以自定义设置该值。**FreeRTOS** 不使用该值。
-
-> UBaseType_t uxBasePriority;
-
-> UBaseType_t uxMutexesHeld;
-
-在 **互斥锁** 中使用的 **优先级继承机制**，能解决 **优先级反转** 的问题。
-
-> TaskHookFunction_t pxTaskTag;
-
-允许用户设置一个回调函数的指针。**FreeRTOS** 不使用该指针。
-
-> void *pvThreadLocalStoragePointers[ configNUM_THREAD_LOCAL_STORAGE_POINTERS ];
-
-允许用户存储一些本地数据，**FreeRTOS** 不使用该指针。
-
-> configRUN_TIME_COUNTER_TYPE ulRunTimeCounter;
-
-记录任务运行的总时间。
-
-> configTLS_BLOCK_TYPE xTLSBlock;
-
-提供对 **newlib** 的支持，**FreeRTOS** 不使用该值。
-
-> volatile uint32_t ulNotifiedValue[ configTASK_NOTIFICATION_ARRAY_ENTRIES ];
-
-> volatile uint8_t ucNotifyState[ configTASK_NOTIFICATION_ARRAY_ENTRIES ];
-
-提供 **任务通知** 机制。
-
-> uint8_t ucStaticallyAllocated;
-
-标识 **栈空间** 和 **TCB** 是 **静态内存** 还是 **动态内存**。在 **vTaskDelete** 中根据该状态字进行相应的注销操作。
-
-> uint8_t ucDelayAborted;
-
-标识该任务是否需要 **立即唤醒**，可以使用 **xTaskAbortDelay** 停止延时等待。
-
-> int iTaskErrno;
-
-记录该任务的 **errno**。
-
 ## 主要全局变量
 
-### pxCurrentTCB
+| 变量声明 | 用途 |
+| --- | --- |
+| `portDONT_DISCARD PRIVILEGED_DATA TCB_t * volatile pxCurrentTCB = NULL;` | 调度器启动后指向当前任务的 TCB |
+| `PRIVILEGED_DATA static List_t pxReadyTasksLists[ configMAX_PRIORITIES ];` | 按优先级组织可运行任务，当前运行任务的状态项通常也留在对应就绪链表中 |
+| `PRIVILEGED_DATA static List_t xDelayedTaskList1;` | 两个延时链表的存储实体之一 |
+| `PRIVILEGED_DATA static List_t xDelayedTaskList2;` | 两个延时链表的另一个存储实体 |
+| `PRIVILEGED_DATA static List_t * volatile pxDelayedTaskList;` | 当前 tick 周期的延时链表，存放唤醒 tick 未发生无符号回绕的任务 |
+| `PRIVILEGED_DATA static List_t * volatile pxOverflowDelayedTaskList;` | 溢出延时链表，存放唤醒 tick 已发生无符号回绕的任务；tick 回绕时交换两个指针 |
+| `PRIVILEGED_DATA static List_t xPendingReadyList;` | 调度器挂起期间，通过事件项暂存待就绪任务，最外层恢复时迁移其状态项 |
+| `PRIVILEGED_DATA static List_t xTasksWaitingTermination;` | 自删除任务等待 Idle 清理的链表，受 `INCLUDE_vTaskDelete` 控制 |
+| `PRIVILEGED_DATA static List_t xSuspendedTaskList;` | 保存显式挂起和符合无限期等待条件的任务，受 `INCLUDE_vTaskSuspend` 控制 |
+| `int FreeRTOS_errno = 0;` | `configUSE_POSIX_ERRNO = 1` 时当前上下文使用的 errno，与各任务的 `iTaskErrno` 配合保存、恢复 |
+| `PRIVILEGED_DATA static volatile UBaseType_t uxCurrentNumberOfTasks = ( UBaseType_t ) 0U;` | 当前内核管理的任务数，包含运行、就绪、阻塞、挂起及尚未被 Idle 清理的自删除任务 |
+| `PRIVILEGED_DATA static volatile TickType_t xTickCount = ( TickType_t ) configINITIAL_TICK_COUNT;` | 内核的 tick 计数 |
+| `PRIVILEGED_DATA static volatile UBaseType_t uxTopReadyPriority = tskIDLE_PRIORITY;` | 就绪优先级的搜索记录，具体表示由任务选择方式决定 |
+| `PRIVILEGED_DATA static volatile BaseType_t xSchedulerRunning = pdFALSE;` | 调度器已启动且未结束的标志，挂起调度器期间仍保持原值 |
+| `PRIVILEGED_DATA static volatile TickType_t xPendedTicks = ( TickType_t ) 0U;` | 调度器挂起期间积累、等待恢复时处理的 tick 数 |
+| `PRIVILEGED_DATA static volatile BaseType_t xYieldPending = pdFALSE;` | 待处理的任务切换请求 |
+| `PRIVILEGED_DATA static volatile BaseType_t xNumOfOverflows = ( BaseType_t ) 0;` | tick 计数回绕次数，参与跨回绕的超时判断 |
+| `PRIVILEGED_DATA static UBaseType_t uxTaskNumber = ( UBaseType_t ) 0U;` | 创建或删除任务时递增的变化计数，供调试器检测任务集合变化 |
+| `PRIVILEGED_DATA static volatile TickType_t xNextTaskUnblockTime = ( TickType_t ) 0U;` | 当前延时链表的最早唤醒 tick；空表时使用 `portMAX_DELAY` |
+| `PRIVILEGED_DATA static TaskHandle_t xIdleTaskHandle = NULL;` | Idle 任务句柄 |
+| `PRIVILEGED_DATA static volatile UBaseType_t uxSchedulerSuspended = ( UBaseType_t ) pdFALSE;` | 调度器挂起的嵌套计数，减到零时才完成最外层恢复 |
+| `PRIVILEGED_DATA static configRUN_TIME_COUNTER_TYPE ulTaskSwitchedInTime = 0UL;` | 启用运行统计时，保存任务最近切入时的统计时钟读数 |
+| `PRIVILEGED_DATA static volatile configRUN_TIME_COUNTER_TYPE ulTotalRunTime = 0UL;` | 启用运行统计时，保存最近切换时读取的统计时钟值 |
 
-> portDONT_DISCARD PRIVILEGED_DATA TCB_t * volatile pxCurrentTCB = NULL;
+通用任务选择方式使用数值记录就绪优先级的搜索起点。`portable/RVDS/ARM_CM4F` 在 `configUSE_PORT_OPTIMISED_TASK_SELECTION = 1` 时使用位图，要求 `configMAX_PRIORITIES` 不超过 32；表示方法由 port 的选择宏决定。
 
-指向当前正在运行的任务。任何时刻，都只有一个任务处于 **运行态**。
-
-### 等待链表
-
-> PRIVILEGED_DATA static List_t pxReadyTasksLists[ configMAX_PRIORITIES ];
-
-按照 **优先级** 记录当前处于 **就绪态** 的任务，每个链表头代表一组 **相同优先级** 的任务。
-
-### 延时链表
-
-> PRIVILEGED_DATA static List_t xDelayedTaskList1;
-
-> PRIVILEGED_DATA static List_t xDelayedTaskList2;
-
-> PRIVILEGED_DATA static List_t * volatile pxDelayedTaskList;
-
-> PRIVILEGED_DATA static List_t * volatile pxOverflowDelayedTaskList;
-
- - **pxDelayedTaskList**：指向 **延时链表**。如果唤醒时间 **xTickCount + xTicksToDelay** 未溢出，则将任务放入到该链表中。
-
- - **pxOverflowDelayedTaskList**：指向 **溢出延时链表**。如果唤醒时间 **xTickCount + xTicksToDelay** 会产生溢出，则将任务放入到该链表中。
-
-### PendingReady链表
-
-> PRIVILEGED_DATA static List_t xPendingReadyList;
-
-在 **调度器** 挂起期间，若 **ISR** 需要让一个任务进入 **就绪态**，此时，不能将该任务直接放入 **pxReadyTasksLists** 链表中，而是需要暂时存放到 **xPendingReadyList** 链表中。该链表使用 **pxTCB->xEventListItem** 作为链表项，所以也可以认为它是一个 **消息链表**。
-
-一旦 **调度器** 恢复运行，会立即把 **xPendingReadyList** 链表中的所有任务移动到合适的 **pxReadyTasksLists** 链表中。
-
-### WaitingTermination链表
-
-> PRIVILEGED_DATA static List_t xTasksWaitingTermination;
-
-当前正在运行的任务如果需要被删除，无法立即释放资源。此时需要使用该链表进行记录，以便后续在 **IDLE** 任务中进行释放操作。
-
-### Suspended链表
-
-> PRIVILEGED_DATA static List_t xSuspendedTaskList;
-
-跟踪被 **挂起** 的任务，即跟踪 **与时间无关** 的任务。
-
-### 其它变量
-
-> int FreeRTOS_errno = 0;
-
-当前任务的错误字。
-
-> PRIVILEGED_DATA static volatile UBaseType_t uxCurrentNumberOfTasks = ( UBaseType_t ) 0U;
-
-当前管理的任务数，包括所有就绪，阻塞，挂起和待删除的任务。
-
-> PRIVILEGED_DATA static volatile TickType_t xTickCount = ( TickType_t ) configINITIAL_TICK_COUNT;
-
-内核的 **滴答计数**。
-
-> PRIVILEGED_DATA static volatile UBaseType_t uxTopReadyPriority = tskIDLE_PRIORITY;
-
-在 **ARM Cortex-M** 中以 **Bit** 位记录当前哪些优先级被使用，能通过该变量快速找出最高优先级。
-
-> PRIVILEGED_DATA static volatile BaseType_t xSchedulerRunning = pdFALSE;
-
-记录 **调度器** 是否处于运行状态。
-
-> PRIVILEGED_DATA static volatile TickType_t xPendedTicks = ( TickType_t ) 0U;
-
-当使用 **vTaskSuspendAll** 挂起调度器时，该变量跟踪这期间未被处理的内核滴答数。
-
-> PRIVILEGED_DATA static volatile BaseType_t xYieldPending = pdFALSE;
-
-记录 **调度器** 是否需要重新调度。
-
-> PRIVILEGED_DATA static volatile BaseType_t xNumOfOverflows = ( BaseType_t ) 0;
-
-记录 **定时器** 溢出次数。
-
-> PRIVILEGED_DATA static UBaseType_t uxTaskNumber = ( UBaseType_t ) 0U;
-
-记录全局任务数，每个任务会被分配到一个唯一的 **Number**。
-
-> PRIVILEGED_DATA static volatile TickType_t xNextTaskUnblockTime = ( TickType_t ) 0U;
-
-记录 **延时链表** 中，下一次需要唤醒的时间点。
-
-> PRIVILEGED_DATA static TaskHandle_t xIdleTaskHandle = NULL;
-
-**IDLE** 任务的句柄。
-
-> PRIVILEGED_DATA static volatile UBaseType_t uxSchedulerSuspended = ( UBaseType_t ) pdFALSE;
-
-记录 **调度器** 是否被挂起。
-
-> PRIVILEGED_DATA static configRUN_TIME_COUNTER_TYPE ulTaskSwitchedInTime = 0UL;
-
-记录上次任务切换时的时间。
-
-> PRIVILEGED_DATA static volatile configRUN_TIME_COUNTER_TYPE ulTotalRunTime = 0UL;
-
-记录总的运行时间。
+全局 `uxTaskNumber` 用于追踪任务集合变化，TCB 的 `uxTCBNumber` 在创建时取得该计数的快照。自删除任务由 Idle 摘除待清理项时才递减 `uxCurrentNumberOfTasks`，应用动态申请的资源由应用负责释放。
 
 ## 任务的状态
 
 ### 状态描述
 
-**FreeRTOS** 从用户的维度定义了一个枚举 **eTaskState**，该枚举描述了任务的状态：
+`eTaskState` 描述任务在查询时的状态：
 
- - **Running**：当任务实际执行时，被称为处于 **运行状态**。该任务当前正在使用处理器。
+| 状态 | 含义 |
+| --- | --- |
+| `eRunning` | 当前任务，由 `pxCurrentTCB` 标识；执行 ISR 时，处理器暂时执行异常处理代码 |
+| `eReady` | 具备运行条件，等待调度器选择 |
+| `eBlocked` | 等待时间、事件或通知，可在满足条件、超时或被中止等待时解除阻塞 |
+| `eSuspended` | 被显式挂起，需要通过任务恢复接口恢复 |
+| `eDeleted` | 已进入删除路径，可能仍有内核资源等待清理 |
 
-    - 当前 **正在执行** 的任务，始终由 **pxCurrentTCB** 所指向。
-
- - **Ready**：指能够执行，但目前没有执行的任务。因为其它同等或更高优先级的任务已经处于运行状态。
-
-    - 属于 **pxReadyTasksLists** 链表的任务。
-
-    - 被挂载到消息链表 **xPendingReadyList** 上的任务。注意此时任务的状态项 **xStateListItem** 可能依然处于其它链表上。
-
- - **Blocked**：如果任务当前正在等待时间或外部事件，则该任务被认为处于 **阻塞状态**。处于 **阻塞状态** 的任务通常有一个超时期限，超时后任务将被解除 **阻塞状态**。
-
-    - 属于 **pxDelayedTaskList** 链表的任务，该组任务可以被 **超时唤醒**，也可以被 **事件唤醒**。
-
-    - 属于 **pxOverflowDelayedTaskList** 链表的任务，该组任务可以被 **超时唤醒**，也可以被 **事件唤醒**。
-
-    - 属于 **xSuspendedTaskList** 链表，但正在等待 **事件唤醒** 的任务。
-
-    - 属于 **xSuspendedTaskList** 链表，但正在等待 **任务通知** 的任务。
-
- - **Suspended**：与 **阻塞状态** 下的任务一样， **挂起状态** 下的任务也不能进入运行状态，但是没有超时时间的限制。
-
-    - 属于 **xSuspendedTaskList** 链表，并且没有等待 **事件唤醒** 和 **任务通知** 的任务。
-
- - **Deleted**：
-
-    - 属于 **xTasksWaitingTermination** 链表的任务。
-
-    - 不属于任何链表的任务。
+启用 `INCLUDE_eTaskGetState = 1` 后，可以通过 `eTaskGetState()` 查询仍有效的任务句柄。结果是瞬时观察，后续可能立即改变；任务资源释放后，句柄随之失效，生命周期应由应用管理。
 
 ### 任务的状态和全局链表的关系
 
-需要注意 **任务的状态** 和 **全局链表** 是程序的两个维度，是不能直接对应的。两者的差异可以从函数 **eTaskGetState** 的处理逻辑中看出：
+链表记录内部管理关系，状态查询还需要结合当前任务、事件项和通知状态判断。
 
- - **任务的状态** 是从用户的维度来看待任务，对应枚举值 **eTaskState**，其中：
-
-    - **Blocked** 是指会在一定条件下被内核唤醒的任务，比如 **超时唤醒**，**事件唤醒**，**任务通知** 等。
-
-    - **Suspended** 是指永远不会被内核自动唤醒的任务。
-
- - **全局链表** 是从内核的维度来看待任务，其中：
-
-    - 如果任务会在一段时间后被唤醒，就会挂载到链表 **pxDelayedTaskList** 或 **pxOverflowDelayedTaskList** 上。比如：
-
-        - 使用 **xQueueReceive** 等待消息接收，超时时间不为 **portMAX_DELAY**。
-
-        - 使用 **vTaskDelay** 等待一段时间被唤醒。
-
-    - 如果任务不会被时间唤醒，就会挂载到链表 **xSuspendedTaskList** 上，比如：
-
-        - 使用 **xQueueReceive** 等待消息接收，超时时间为 **portMAX_DELAY**。
-
-        - 使用 **vTaskSuspend** 挂起任务。
+- 当前运行任务通常仍在就绪链表中，`eTaskGetState()` 先通过 `pxCurrentTCB` 将它识别为 `eRunning`。
+- 状态项位于两个延时链表之一的任务，被识别为 `eBlocked`。队列等待可因事件或超时解除阻塞，纯延时则主要等待唤醒 tick。
+- 支持无限期阻塞的接口，在 `INCLUDE_vTaskSuspend = 1` 且等待时间为 `portMAX_DELAY` 时，可以把状态项放入 `xSuspendedTaskList`。例如，队列接收可以无限等待消息；`vTaskDelay(portMAX_DELAY)` 则仍表示有限 tick 延时。
+- 对于挂起链表中的任务，查询还会检查事件项归属及各通知索引是否正在等待；事件或通知等待中的任务返回 `eBlocked`，显式挂起的任务返回 `eSuspended`。
+- 调度器挂起期间，事件项进入 `xPendingReadyList` 后，状态项暂留原链表。恢复迁移前，`eTaskGetState()` 仍可能返回 `eBlocked`；最外层恢复后再参与正常调度。
+- 启用任务删除功能时，待清理链表中的任务以及状态项容器为空的相应删除路径可返回 `eDeleted`，查询要求 TCB 仍然有效。
 
 ### 状态迁移
 
-![Task States][3]
+| 起始状态 | 典型触发条件 | 结果 |
+| --- | --- | --- |
+| 创建任务 | 创建成功并加入就绪链表 | Ready；调度器已启动时可能随即获得 CPU |
+| Ready | 调度器选中该任务 | Running |
+| Running | 被抢占或主动让出，且仍具备运行条件 | Ready；主动让出后也可能再次选中自身 |
+| Running | 等待尚未满足的事件、通知或非零延时 | Blocked |
+| Blocked | 事件到达、等待超时或 `xTaskAbortDelay()` 成功 | Ready，随后按调度条件运行 |
+| Running / Ready / Blocked | 调用 `vTaskSuspend()` 挂起对应任务 | Suspended |
+| Suspended | 调用 `vTaskResume()` 或 `xTaskResumeFromISR()` | Ready，必要时延后就绪处理 |
+| 仍存在的任务 | 调用 `vTaskDelete()` | Deleted；自删除的内核资源交由 Idle 清理 |
+
+![Stack Transition][3]
+
+## 源码依据
+
+- [tasks.c](https://github.com/FreeRTOS/FreeRTOS-Kernel/blob/V10.5.1/tasks.c)：`TCB_t`、任务管理变量、`prvInitialiseNewTask()`、`vTaskSwitchContext()`、`eTaskGetState()`、`vTaskDelete()`。
+- [task.h](https://github.com/FreeRTOS/FreeRTOS-Kernel/blob/V10.5.1/include/task.h)：任务状态枚举及任务管理 API 的使用条件。
+- [FreeRTOS.h](https://github.com/FreeRTOS/FreeRTOS-Kernel/blob/V10.5.1/include/FreeRTOS.h)：可选功能默认值、分配条件及运行库 TLS 钩子。
+- [Cortex-M4F portmacro.h](https://github.com/FreeRTOS/FreeRTOS-Kernel/blob/V10.5.1/portable/RVDS/ARM_CM4F/portmacro.h)：优化任务选择的位图和优先级数量限制。
 
  [1]: ./images/task_overview.jpg
  [2]: ./images/stack_instance.jpg

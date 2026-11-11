@@ -4,15 +4,15 @@
 
 ## 安装 APT 依赖项
 
-    ```
-    sudo apt install --no-install-recommends git cmake ninja-build gperf \
-    ccache dfu-util device-tree-compiler wget python3-dev python3-venv python3-tk \
-    xz-utils file make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1
-    ```
+```sh
+sudo apt install --no-install-recommends git cmake ninja-build gperf \
+ccache dfu-util device-tree-compiler wget python3-dev python3-venv python3-tk \
+xz-utils file make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1
+```
 
 ## 安装 Python 依赖项
 
-```
+```sh
 mkdir ~/zephyr_workspace/
 mkdir ~/zephyr_workspace/zephyr_main
 
@@ -28,7 +28,7 @@ pip install west
 
 ## 获取 Zephyr 源码
 
-```
+```sh
 # Get the Zephyr manifest
 west init ~/zephyr_workspace/zephyr_main/
 
@@ -46,31 +46,31 @@ west packages pip --install
 
 ## 安装 SDK (Toolchains)
 
-```
+```sh
 west sdk install
 ```
 
-默认的安装位置为 **\$HOME\/zephyr\-sdk\-\<version\>**
+默认的安装位置为 `$HOME/zephyr-sdk-<version>`。
 
-编译时，构建系统会自动从以下位置获取工具链:
+编译时，构建系统会自动从以下位置获取工具链：
 
- - **$HOME**
+- `$HOME`
 
- - **$HOME/.local**
+- `$HOME/.local`
 
- - **$HOME/.local/opt**
+- `$HOME/.local/opt`
 
- - **$HOME/bin**
+- `$HOME/bin`
 
- - **/opt**
+- `/opt`
 
- - **/usr/local**
+- `/usr/local`
 
-如果希望安装到其它位置，则需要使用环境变量 **ZEPHYR_SDK_INSTALL_DIR** 配置安装目录。
+如果希望安装到其它位置，则需要使用环境变量 `ZEPHYR_SDK_INSTALL_DIR` 配置安装目录。
 
 ## 编译并运行
 
-```
+```sh
 cd ~/zephyr_workspace/zephyr_main/zephyr/samples/hello_world/
 
 west build -b native_sim .
