@@ -75,7 +75,7 @@ do { \
 
 按示例的 `packed` 布局，包头共 9 B：`identifier`、`length` 各 2 B，`offset` 为 4 B，`arg_cnt` 为 1 B；每个参数项由 1 B 类型、1 B 载荷长度和载荷组成。包头 `length` 保存总包长减 4 B，解码时再加回前两个字段的长度，不是纯参数载荷长度。
 
-编码的具体实现可以参见例子中的文件 [encoder.c](demos/encoder.c)，编码后的输出如下：
+编码的具体实现可以参见例子中的文件 [encoder.c](demo/encoder.c)，编码后的输出如下：
 
 ![Encoded stream][4]
 
@@ -89,4 +89,4 @@ do { \
  [2]: ./images/log.str.jpg
  [3]: ./images/log_encoder.jpg
  [4]: ./images/encoded_stream.jpg
- [5]: ./demos
+ [5]: ./demo
