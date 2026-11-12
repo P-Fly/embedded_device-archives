@@ -60,7 +60,7 @@
         - [如何计算 Flash 和 RAM 的大小](Notes/Keil/2023-09-24-Notes-Keil-How-to-calculate-flash-and-memory-size.md)
 
     - 编码
-        - [Base64 介绍](Notes/Encode/2024-01-20-Notes-Encode-Base64-introduction.md)
+        - [Base64 介绍](Notes/Encode/Base64/2024-01-20-Notes-Encode-Base64-introduction.md)
 
     - Zephyr
         - 入门

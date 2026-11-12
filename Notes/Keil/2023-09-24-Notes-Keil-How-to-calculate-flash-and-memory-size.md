@@ -1,6 +1,6 @@
 # 如何估算 Flash 和 RAM 的占用
 
-Keil MDK 使用 Arm 链接器构建后，Build Output 中的 `Program Size` 给出映像的分类统计，单位为 B。以下保留一组统计输出；其原工程的 MDK、Arm Compiler、armlink 版本、芯片型号和 scatter 文件均未知，不能据此确定具体芯片的资源余量。
+Keil MDK 使用 Arm 链接器构建后，Build Output 中的 `Program Size` 给出映像的分类统计，单位为 B。
 
 ```text
 linking...
@@ -17,7 +17,7 @@ FromELF: creating hex file...
 
 ## 常见布局下的估算
 
-若代码和只读数据在 Flash 中执行或访问，RW 初值从 Flash 复制到 RAM，ZI 在 RAM 中清零，且暂不考虑压缩、填充和额外区域，则可估算：
+若代码和只读数据在 Flash 中执行或访问，RW 初值从 Flash 复制到 RAM，ZI 在 RAM 中清零，则可估算：
 
 $$
 S_{\mathrm{Flash,estimate}} = S_{\mathrm{Code}} + S_{\mathrm{RO}} + S_{\mathrm{RW}}
@@ -27,15 +27,13 @@ $$
 S_{\mathrm{RAM,estimate}} = S_{\mathrm{RW}} + S_{\mathrm{ZI}}
 $$
 
-这组输出对应 Flash 映像估算 `14348 + 676 + 284 = 15308 B`，RAM 执行空间估算 `284 + 36416 = 36700 B`。这是常见加载/执行布局下的映像估算，**不是芯片 Flash/RAM 的完整资源预算**，也不是 AXF 文件在主机磁盘上的大小。
+这组输出对应 Flash 映像估算 `14348 + 676 + 284 = 15308 B`，RAM 执行空间估算 `284 + 36416 = 36700 B`。
 
 ## 加载视图与执行视图
 
 加载视图（Load View）描述映像在启动前的存储位置，执行视图（Execution View）描述运行时的位置。RW 的初值副本占加载区空间，初始化后可修改的数据占执行区空间，因此通常同时计入 Flash 和 RAM。ZI 只需在执行区预留空间，由启动初始化代码清零。
 
 ![RW 从 ROM 加载区复制到 RAM 执行区，ZI 在 RAM 中清零][1]
-
-原图标题说明映像不含 XO（Execute-only）section；左侧为 Load view，右侧为 Execution view，纵轴地址向上增大。图中的 ROM 对应本节常见布局的 Flash，RW 箭头表示复制，ZI 箭头表示清零，虚线和地址仅用于说明区域关系，不代表上述统计输出的真实地址或目标芯片布局。
 
 ## 用 map 核对资源预算
 
@@ -49,8 +47,6 @@ $$
 | RW 压缩 | 压缩后的加载数据大小不再等于 RW 的执行大小，还需考虑解压代码和相关表；RAM 仍按解压后的执行布局计算 |
 | 多加载区与多执行区 | 各个区域分别检查容量和重叠；代码在 RAM 执行、XO 区域、外部 Flash/RAM 等布局不能直接套用上述两个总和 |
 | 映像之外的对象 | bootloader、其他固件映像、参数区、文件系统、升级槽及保留区须单独核对；外部存储占用不等于片内占用 |
-
-简短算例：假设一个未压缩、忽略填充的模型映像有 `Code=4096 B`、`RO=512 B`、`RW=256 B`、`ZI=2048 B`，且 ZI 已包含 `1024 B` 栈和 `512 B` 堆。则 Flash 估算为 `4864 B`，RAM 估算为 `2304 B`，不能再把这份栈和堆加一次。此为说明计数关系的原创模型，不是 Keil 实测输出；真实工程是否已包含栈和堆必须查看 map。
 
 ## 参考资料
 
