@@ -121,6 +121,12 @@ __WEAK void osRtxThreadStackCheck (void) {
 }
 ```
 
+### Stack Canary
+
+Stack Canary 由编译器在受保护函数的栈帧中保存 guard，并在函数正常退出前检查其是否被改写，发现异常时进入失败处理路径。它主要用于发现局部缓冲区越界等写操作造成的栈帧破坏，可作为栈边界检测的补充，但不能替代线程栈容量检查。
+
+机制与演示示例见 [Stack Canary 机制](../StackCanary/2026-11-12-Notes-MemorySafety-Stack-canary.md)。
+
 ## 硬件检测
 
 ### Watchpoint 与 DWT

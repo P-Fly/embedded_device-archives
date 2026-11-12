@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | [Architecture](Architecture/) | 架构、指令集、ABI 等规范性资料 | ARM ABI、ARMv7-M、ARMv8-M |
 | [Books](Books/) | 嵌入式相关书籍 | Cortex-M |
-| [Notes](Notes/) | 技术原理、源码分析、工具用法、设计方案和学习记录 | FreeRTOS、Keil、Base64、Zephyr、设计方案 |
+| [Notes](Notes/) | 技术原理、源码分析、工具用法、设计方案和学习记录 | FreeRTOS、Keil、Base64、Zephyr、内存安全、设计方案 |
 
 ## 归档约定
 
