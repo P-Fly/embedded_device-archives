@@ -9,11 +9,11 @@
 | `xTaskCreateRestricted` | 调用方提供 | 内核动态分配 | 使用 MPU wrappers 的 port，并启用动态分配 |
 | `xTaskCreateRestrictedStatic` | 调用方提供 | 调用方提供 | 使用 MPU wrappers 的 port，并启用静态分配 |
 
-这些接口共享部分初始化和加入就绪链表的流程。Restricted 接口通过 `TaskParameters_t` 配置任务及其 MPU 内存区域，具体权限和区域约束由 MPU port 决定。
+这些接口共享部分初始化和加入就绪链表的流程。Restricted 接口通过 `TaskParameters_t` 配置任务及其 MPU 内存区域。
 
-`xTaskCreateStatic()` 成功时直接返回任务句柄；其他三个创建接口返回状态码，并通过输出参数提供句柄。调用方提供的栈和 TCB 缓冲区，在任务使用及内核清理完成前必须保持有效。
+任务删除使用 `vTaskDelete()`，由 `INCLUDE_vTaskDelete = 1` 启用。
 
-任务删除使用 `vTaskDelete()`，由 `INCLUDE_vTaskDelete = 1` 启用。下面重点说明动态创建及删除流程。
+下面重点说明动态创建及删除流程。
 
 ## xTaskCreate
 
@@ -36,7 +36,7 @@ BaseType_t xTaskCreate( TaskFunction_t pxTaskCode,
 
 `TaskFunction_t pxTaskCode`
 
-任务入口函数。任务函数应持续执行或在完成工作、清理资源后自删除，不能正常返回。
+任务入口函数。
 
 `const char * const pcName`
 
@@ -48,7 +48,7 @@ BaseType_t xTaskCreate( TaskFunction_t pxTaskCode,
 
 `void * const pvParameters`
 
-传给任务入口的参数指针，可为 `NULL`。内核传递指针值，其指向对象必须在任务使用期间保持有效。
+传给任务入口的参数指针，可为 `NULL`。
 
 `UBaseType_t uxPriority`
 
@@ -56,14 +56,12 @@ BaseType_t xTaskCreate( TaskFunction_t pxTaskCode,
 
 `TaskHandle_t * const pxCreatedTask`
 
-可选的句柄输出参数。不需要获取句柄时可传 `NULL`；需要句柄时，应在确认创建成功后使用输出值。
+可选的句柄输出参数，不需要获取句柄时可传 `NULL`。
 
 ### 返回值
 
 - `pdPASS`：创建成功，任务已加入就绪链表。
 - `errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY`：栈或 TCB 分配失败，任务未创建；已分配的部分由创建路径释放。
-
-调用前应确保参数有效、栈深度足够，并处理分配失败的返回值。
 
 ### 流程
 
@@ -73,15 +71,13 @@ BaseType_t xTaskCreate( TaskFunction_t pxTaskCode,
 
 #### 分配栈和 TCB
 
-内核分别为 `pxNewTCB` 和 `pxStack` 分配空间。`portSTACK_GROWTH < 0` 时先分配栈，再分配 TCB；向高地址增长时顺序相反。如果第二次分配失败，会释放第一次分配的空间。
-
-这种分配顺序旨在降低栈向 TCB 方向增长的风险。实际地址关系取决于堆实现和空闲块分布，任务仍需要足够的栈空间及相应的溢出检测或保护。
+内核分别为 `pxNewTCB` 和 `pxStack` 分配空间。`portSTACK_GROWTH < 0` 时先分配栈，再分配 TCB；向高地址增长时顺序相反。这种分配顺序旨在降低栈向 TCB 方向增长的风险。
 
 #### 计算初始栈顶
 
 以 `portable/RVDS/ARM_CM4F` 为例，`StackType_t` 为 32 位，栈向低地址增长，`portBYTE_ALIGNMENT` 为 8。内核从栈数组的高地址端计算初始位置，再向低地址按 8 B 边界对齐。
 
-AAPCS32 区分持续成立的栈约束与公共接口约束：SP 始终满足 4 B 对齐，在公共接口处满足 8 B 对齐。下图摘录了这两项约束；任务初始上下文的安排还需满足所选 port 的恢复流程。
+AAPCS32 区分持续成立的栈约束与公共接口约束：SP 始终满足 4 B 对齐，在公共接口处满足 8 B 对齐。下图摘录了这两项约束：
 
 ![Stack constraints at a public interface][2]
 
@@ -97,7 +93,7 @@ Armv7-M 的基本异常帧包含 R0、R1、R2、R3、R12、LR、PC 和 xPSR。�
 
 ![Exception entry behavior][3]
 
-对于上述无 MPU 的 Cortex-M4F port，以下偏移从 `pxPortInitialiseStack()` 返回的指针开始计算，按地址从低到高排列，每个槽位为 4 B：
+以下偏移从 `pxPortInitialiseStack()` 返回的指针开始计算，按地址从低到高排列，每个槽位为 4 B：
 
 | 字节偏移 | 内容 | 初始用途 |
 | --- | --- | --- |
@@ -111,11 +107,11 @@ Armv7-M 的基本异常帧包含 R0、R1、R2、R3、R12、LR、PC 和 xPSR。�
 
 SVC 恢复处理先读取 R4–R11 和 EXC_RETURN，再把 PSP 设置到表中 R0 的位置。此时处理函数的 R14 保存 EXC_RETURN，执行 `bx r14` 后，硬件恢复基本帧并进入任务入口；基本帧中的 LR 则成为任务运行时的返回地址。
 
-`0xFFFFFFFD` 表示返回 Thread mode、使用 PSP、采用基本异常帧。异常返回规则可参考下图摘录的架构手册 B1.5.8：
+`0xFFFFFFFD` 表示返回 Thread mode、使用 PSP、采用基本异常帧。异常返回规则可参考下图：
 
 ![Exception return behavior][4]
 
-该初始上下文未包含浮点扩展帧。任务使用 FPU 后，后续切换会按 EXC_RETURN 的位 4 判断是否需要额外保存和恢复 S16–S31，硬件浮点帧的处理还受浮点上下文及延迟保存机制影响。MPU port 的附加上下文应以其初始化和切换实现为准。
+该初始上下文未包含浮点扩展帧。任务使用 FPU 后，后续切换会按 EXC_RETURN 的位 4 判断是否需要额外保存和恢复 S16–S31，硬件浮点帧的处理还受浮点上下文及延迟保存机制影响。
 
 下图给出向低地址增长的初始栈地址示例。`pxTopOfStack` 最终指向软件恢复块起点，具体地址和栈与 TCB 的相对位置取决于实际分配结果。
 
@@ -149,21 +145,12 @@ void vTaskDelete( TaskHandle_t xTaskToDelete );
 
 ![vTaskDelete Sequence][6]
 
-1. 从任务所在的状态链表移除状态项；若事件项仍挂在链表中，也将其移除。
-2. 如果删除的是当前任务，将其放入 `xTasksWaitingTermination`，请求切换到其他任务。Idle 随后通过 `prvCheckTasksWaitingTermination()` 和 `prvDeleteTCB()` 完成清理。
-3. 如果删除的是其他任务，在删除调用路径中执行 `prvDeleteTCB()`，回收应由内核释放的存储，并更新相关任务管理信息。
+1. 从任务所在的状态链表移除状态项。
+2. 从事件所在的链表中移除事件项。
+3. 如果删除的是当前任务，将其放入 `xTasksWaitingTermination`，请求切换到其他任务。Idle 随后通过 `prvCheckTasksWaitingTermination()` 和 `prvDeleteTCB()` 完成清理。
+4. 如果删除的是其他任务，在删除调用路径中执行 `prvDeleteTCB()`，回收应由内核释放的存储，并更新相关任务管理信息。
 
 调度器挂起期间不能自删除。自删除后 Idle 需要获得运行机会，才能完成延后清理；如果 Idle 长期不能运行，待清理任务的内存会持续占用。
-
-### 内存与资源归属
-
-| 创建方式 | 删除时的内存处理 |
-| --- | --- |
-| `xTaskCreate` | 内核释放动态分配的栈和 TCB |
-| `xTaskCreateRestricted` | 内核释放动态 TCB，调用方提供的栈由调用方管理 |
-| `xTaskCreateStatic` / `xTaskCreateRestrictedStatic` | 栈和 TCB 均由调用方管理，内核完成对应清理流程 |
-
-调用方提供的存储应在任务退出且内核清理完成后再复用；自删除场景需要等待 Idle 完成清理。任务自行申请的缓冲区、持有的互斥量及外设资源由应用负责释放或移交，自删除前应完成必要的资源清理。外部删除也需要与目标任务建立安全的退出协议，避免其正处于资源使用过程中。
 
 ## 源码依据
 

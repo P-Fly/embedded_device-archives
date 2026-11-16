@@ -1,6 +1,6 @@
 # 队列集
 
-队列集让任务通过一个阻塞点等待多个队列或信号量上的可用事件。任务等待的是队列集，不是同时挂入各成员的等待链表。成员队列有消息或成员信号量可获取时，任务可以从队列集中取得对应的成员句柄，再消费该成员的一次事件。
+队列集让任务通过一个阻塞点等待多个队列或信号量上的可用事件。
 
 ## 使用方法
 
@@ -34,7 +34,7 @@ select 只移除队列集中的一个事件记录，不读取成员数据，也�
 
 队列集本身也是队列，存储项是成员句柄，不是成员的消息内容。内核通过 `prvNotifyQueueSetContainer()` 把有事件的成员句柄追加到集合，并按等待和调度条件唤醒接收者；队列锁可能延后通知处理。应用只使用公开接口，不直接调用这一内部函数。
 
-![QueueSet Receive][2]
+![QueueSet Receive][1]
 
 图中 Queue1 有两条消息，因此集合中有两个 Queue1 句柄；Queue2 有一条消息，对应一个 Queue2 句柄。select 取出一个 Queue1 句柄后，还需从 Queue1 接收一条消息，不能把选中句柄当作消息已经被接收。
 
@@ -48,13 +48,12 @@ select 只移除队列集中的一个事件记录，不读取成员数据，也�
 
 ## 替代方案
 
-多个生产者也可以向单个队列发送带类型标记的结构体，由类型字段区分事件，其他字段保存数据或指针。这样只需一次接收；若保存指针，仍需协调对象生命周期和所有权。需要保留多个独立队列或信号量时，再考虑队列集。
+多个生产者也可以向单个队列发送带类型标记的结构体，由类型字段区分事件，其他字段保存数据或指针，这样只需一次接收。
 
 ## 源码参考
 
 - [FreeRTOS-Kernel V10.5.1 queue.c](https://github.com/FreeRTOS/FreeRTOS-Kernel/blob/V10.5.1/queue.c)：队列集创建、成员管理、事件通知和选择实现。
 - [FreeRTOS-Kernel V10.5.1 queue.h](https://github.com/FreeRTOS/FreeRTOS-Kernel/blob/V10.5.1/include/queue.h)：容量、成员消费和公开接口约定。
-- [Blocking on Multiple RTOS Objects][1]：队列集概念和使用方式。
+- [Blocking on Multiple RTOS Objects](https://www.freertos.org/Pend-on-multiple-rtos-objects.html)：队列集概念和使用方式。
 
- [1]: https://www.freertos.org/Pend-on-multiple-rtos-objects.html
- [2]: ./images/QueueSet_receive.jpg
+ [1]: ./images/QueueSet_receive.jpg

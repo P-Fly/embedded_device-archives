@@ -1,7 +1,5 @@
 # 任务切换
 
-以下汇编按 `portable/RVDS/ARM_CM4F` 的非 MPU Cortex-M4F port 分析，使用 Arm Compiler 5 的汇编语法。任务在特权 Thread mode 中使用 PSP，异常处理函数在 Handler mode 中使用 MSP。片段按步骤展示核心寄存器的处理，浮点上下文的条件分支在相邻文字中说明。
-
 任务切换的请求路径如下图，具体触发条件见下表。
 
 ![任务切换请求路径概览][1]
@@ -9,7 +7,7 @@
 | 路径 | 请求条件 |
 | --- | --- |
 | 任务调用 `taskYIELD()` | 通过 `portYIELD()` 请求调度，在抢占和协作式调度模式下均有效 |
-| 内核使用 `taskYIELD_IF_USING_PREEMPTION()` | `configUSE_PREEMPTION == 1` 时请求调度；这是内核内部宏，应用使用公开任务 API |
+| 内核使用 `taskYIELD_IF_USING_PREEMPTION()` | `configUSE_PREEMPTION == 1` 时请求调度，这是内核内部宏 |
 | ISR 使用 `portYIELD_FROM_ISR()` / `portEND_SWITCHING_ISR()` | 参数为非 `pdFALSE` 时请求调度；通常由 `...FromISR()` API 的唤醒结果决定 |
 | `xPortSysTickHandler()` | 仅当 `xTaskIncrementTick()` 返回非 `pdFALSE` 时请求调度 |
 

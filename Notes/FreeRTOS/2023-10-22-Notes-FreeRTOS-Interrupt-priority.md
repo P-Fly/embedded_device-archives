@@ -1,6 +1,6 @@
 # 中断优先级
 
-以下按 `portable/RVDS/ARM_CM4F` 的 Cortex-M4F 非 MPU port 说明外部中断、BASEPRI、PendSV 和 SysTick 的约束；SVC 另列 `portable/RVDS/ARM_CM4_MPU` 的具体实现。是否采用 MPU port 由项目选择的移植层和配置决定。
+![interrupt priority][1]
 
 ## 外部中断优先级
 
@@ -27,7 +27,7 @@ BASEPRI 不改变中断的 NVIC 使能位，而是在非零时屏蔽达到阈值
 
 ## 优先级分组与检查
 
-NVIC 的分组可以将有效优先级位分为抢占优先级和子优先级。同一抢占优先级的异常不会相互抢占，子优先级只参与多个待处理异常的先后选择。此 port 要求所有已实现的优先级位用于抢占优先级。
+NVIC 的分组可以将有效优先级位分为抢占优先级和子优先级。同一抢占优先级的异常不会相互抢占，子优先级只参与多个待处理异常的先后选择。
 
 使用 CMSIS 时，`NVIC_SetPriorityGrouping(0)` 可满足该分组要求。若芯片厂商库另有分组约定，应统一整个工程的设置，避免初始化代码随后改写分组。`NVIC_EncodePriority()` 根据传入的分组值组合抢占优先级和子优先级，应用应使该参数与实际分组一致；其结果仍是传给 `NVIC_SetPriority()` 的逻辑值。
 
@@ -81,8 +81,6 @@ PendSV pending 是单个位，多个请求可以合并，处理函数按执行�
 
 SysTick 处理到期任务后，仅在内核返回需要调度时置位 PendSV。任务真正开始执行还取决于中断屏蔽、其他异常的执行时间、PendSV 的响应及任务优先级。任务响应时间分析应包括临界区长度、高紧急度 ISR 的执行与到达频率，以及任务本身的阻塞和运行开销。
 
-若应用替换默认节拍源或采用其他 port，应按实际节拍处理函数的屏蔽和嵌套设计确定优先级，并保留对临界区和任务响应时间的验证。
-
 ## 源码依据
 
 - [portable/RVDS/ARM_CM4F/port.c](https://github.com/FreeRTOS/FreeRTOS-Kernel/blob/V10.5.1/portable/RVDS/ARM_CM4F/port.c)：异常优先级设置、SysTick 屏蔽假设及 `vPortValidateInterruptPriority()`。
@@ -90,3 +88,5 @@ SysTick 处理到期任务后，仅在内核返回需要调度时置位 PendSV�
 - [portable/RVDS/ARM_CM4_MPU/port.c](https://github.com/FreeRTOS/FreeRTOS-Kernel/blob/V10.5.1/portable/RVDS/ARM_CM4_MPU/port.c)：`portNVIC_SVC_PRI` 及启动 SVC 的优先级设置。
 - [include/task.h](https://github.com/FreeRTOS/FreeRTOS-Kernel/blob/V10.5.1/include/task.h)：任务及 ISR 接口、调度器状态的使用约定。
 - [CMSIS 5.9.0 core_cm4.h](https://github.com/ARM-software/CMSIS_5/blob/5.9.0/CMSIS/Core/Include/core_cm4.h)：`NVIC_SetPriority()`、`NVIC_SetPriorityGrouping()` 和 `NVIC_EncodePriority()`。
+
+ [1]: ./images/interrupt_priority.jpg

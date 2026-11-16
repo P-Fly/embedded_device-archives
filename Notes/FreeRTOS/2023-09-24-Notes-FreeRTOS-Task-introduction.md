@@ -6,7 +6,7 @@ FreeRTOS 使用任务组织应用，每个任务都有自己的任务控制块�
 
 任务是内核调度的基本执行单元。在常见的共享地址空间模型中，可以将其类比为线程：每个任务有独立的栈和寄存器上下文，程序代码、全局数据及外设资源则可以共享。
 
-多个任务实例可以使用同一个入口函数，分别通过参数和各自的局部变量保存工作状态。创建任务时传入的参数指针按值传递，其指向对象的生命周期及共享访问由应用管理。
+多个任务实例可以使用同一个入口函数，分别通过参数和各自的局部变量保存工作状态。创建任务时，传给任务的只是参数指针的值，不会复制它指向的数据。应用需要保证这些数据在任务使用期间有效，并在多个任务共享访问时做好必要的同步。
 
 任务被切出时，port 保存恢复执行所需的上下文；再次获得 CPU 后，从先前的执行位置继续运行。下图表示任务、上下文与调度器的关系。
 
@@ -22,22 +22,20 @@ FreeRTOS 使用任务组织应用，每个任务都有自己的任务控制块�
 | --- | --- |
 | `configUSE_PREEMPTION = 1` | 更高优先级任务就绪时，可以触发抢占；临界区、ISR 执行和调度器挂起等情况会影响实际切换时机 |
 | `configUSE_PREEMPTION = 0` | 使用协作式调度，当前任务通常在主动让出、阻塞或挂起等调度点交出处理器 |
-| 同时启用抢占和 `configUSE_TIME_SLICING = 1` | tick 可触发同优先级就绪任务轮转；各任务实际占用的 CPU 时间仍取决于其执行、阻塞及中断情况 |
-
-关闭时间片时，同优先级任务仍可因主动让出或阻塞发生切换。实时性需要结合这些条件和应用的时序预算验证。
+| 同时启用 `configUSE_PREEMPTION = 1` 和 `configUSE_TIME_SLICING = 1` | tick 可触发同优先级就绪任务轮转；各任务实际占用的 CPU 时间仍取决于其执行、阻塞及中断情况 |
 
 ## 主要数据结构
 
 ### TCB_t
 
-每个任务都有自己的任务控制块 `TCB_t`（Task Control Block），用于记录上下文位置、链表节点、优先级及各项可选功能的数据。成员布局由内核实现、port 和配置共同决定；应用通过任务句柄及公开 API 操作任务。
+每个任务都有自己的任务控制块 `TCB_t`（Task Control Block），用于记录上下文位置、链表节点、优先级及各项可选功能的数据。
 
 | 成员声明 | 用途 | 出现条件 |
 | --- | --- | --- |
 | `volatile StackType_t *pxTopOfStack;` | 保存任务上下文对应的栈指针，必须为第一成员，供 port 保存与恢复上下文 | 始终存在 |
-| `xMPU_SETTINGS xMPUSettings;` | 保存 port 定义的 MPU 设置，存在时为第二成员 | `portUSING_MPU_WRAPPERS = 1` |
+| `xMPU_SETTINGS xMPUSettings;` | 保存 port 定义的 MPU 设置 | `portUSING_MPU_WRAPPERS = 1` |
 | `ListItem_t xStateListItem;` | 用于就绪、延时、挂起及待清理等状态管理链表 | 始终存在 |
-| `ListItem_t xEventListItem;` | 用于事件等待链表或 `xPendingReadyList` | 始终存在 |
+| `ListItem_t xEventListItem;` | 用于事件等待链表或 `xPendingReadyList` 链表 | 始终存在 |
 | `UBaseType_t uxPriority;` | 当前有效优先级，可能已受优先级继承影响；0 为最低优先级 | 始终存在 |
 | `StackType_t *pxStack;` | 栈存储区的起始地址，即低地址端 | 始终存在 |
 | `char pcTaskName[ configMAX_TASK_NAME_LEN ];` | 调试用任务名称，最多保存长度配置减 1 个字符，保留字符串终止符 | 始终存在 |
@@ -56,8 +54,6 @@ FreeRTOS 使用任务组织应用，每个任务都有自己的任务控制块�
 | `uint8_t ucStaticallyAllocated;` | 区分栈和 TCB 的静态、动态来源，供删除路径决定释放哪些内存 | `tskSTATIC_AND_DYNAMIC_ALLOCATION_POSSIBLE != 0` |
 | `uint8_t ucDelayAborted;` | 记录事件等待已被 `xTaskAbortDelay()` 中止，供后续超时检查消费 | `INCLUDE_xTaskAbortDelay = 1` |
 | `int iTaskErrno;` | 保存该任务的 errno，切换时与当前上下文的 `FreeRTOS_errno` 交换 | `configUSE_POSIX_ERRNO = 1` |
-
-例如，`portable/RVDS/ARM_CM4F` 使用 port 内的全局临界嵌套计数；是否把计数保存在 TCB 中，应由 `portCRITICAL_NESTING_IN_TCB` 判断。运行统计可能计入任务运行期间的 ISR 耗时，具体取决于统计时钟及采集方式。互斥量的优先级继承用于减轻优先级反转，实时预算还需考虑持锁时间和多锁依赖。
 
 下图展示栈向低地址和高地址增长时的地址关系。`pxTopOfStack` 表示最近保存的上下文位置；任务正在运行时，实际 SP 由处理器维护。`pxEndOfStack` 是否保存在 TCB 中取决于上表的条件。
 
@@ -91,10 +87,6 @@ FreeRTOS 使用任务组织应用，每个任务都有自己的任务控制块�
 | `PRIVILEGED_DATA static configRUN_TIME_COUNTER_TYPE ulTaskSwitchedInTime = 0UL;` | 启用运行统计时，保存任务最近切入时的统计时钟读数 |
 | `PRIVILEGED_DATA static volatile configRUN_TIME_COUNTER_TYPE ulTotalRunTime = 0UL;` | 启用运行统计时，保存最近切换时读取的统计时钟值 |
 
-通用任务选择方式使用数值记录就绪优先级的搜索起点。`portable/RVDS/ARM_CM4F` 在 `configUSE_PORT_OPTIMISED_TASK_SELECTION = 1` 时使用位图，要求 `configMAX_PRIORITIES` 不超过 32；表示方法由 port 的选择宏决定。
-
-全局 `uxTaskNumber` 用于追踪任务集合变化，TCB 的 `uxTCBNumber` 在创建时取得该计数的快照。自删除任务由 Idle 摘除待清理项时才递减 `uxCurrentNumberOfTasks`，应用动态申请的资源由应用负责释放。
-
 ## 任务的状态
 
 ### 状态描述
@@ -109,7 +101,7 @@ FreeRTOS 使用任务组织应用，每个任务都有自己的任务控制块�
 | `eSuspended` | 被显式挂起，需要通过任务恢复接口恢复 |
 | `eDeleted` | 已进入删除路径，可能仍有内核资源等待清理 |
 
-启用 `INCLUDE_eTaskGetState = 1` 后，可以通过 `eTaskGetState()` 查询仍有效的任务句柄。结果是瞬时观察，后续可能立即改变；任务资源释放后，句柄随之失效，生命周期应由应用管理。
+启用 `INCLUDE_eTaskGetState = 1` 后，可以通过 `eTaskGetState()` 查询仍有效的任务句柄。
 
 ### 任务的状态和全局链表的关系
 
@@ -117,9 +109,9 @@ FreeRTOS 使用任务组织应用，每个任务都有自己的任务控制块�
 
 - 当前运行任务通常仍在就绪链表中，`eTaskGetState()` 先通过 `pxCurrentTCB` 将它识别为 `eRunning`。
 - 状态项位于两个延时链表之一的任务，被识别为 `eBlocked`。队列等待可因事件或超时解除阻塞，纯延时则主要等待唤醒 tick。
-- 支持无限期阻塞的接口，在 `INCLUDE_vTaskSuspend = 1` 且等待时间为 `portMAX_DELAY` 时，可以把状态项放入 `xSuspendedTaskList`。例如，队列接收可以无限等待消息；`vTaskDelay(portMAX_DELAY)` 则仍表示有限 tick 延时。
+- 支持无限期阻塞的接口，在 `INCLUDE_vTaskSuspend = 1` 且等待时间为 `portMAX_DELAY` 时，可以把状态项放入 `xSuspendedTaskList`。例如，队列接收可以无限等待消息。
 - 对于挂起链表中的任务，查询还会检查事件项归属及各通知索引是否正在等待；事件或通知等待中的任务返回 `eBlocked`，显式挂起的任务返回 `eSuspended`。
-- 调度器挂起期间，事件项进入 `xPendingReadyList` 后，状态项暂留原链表。恢复迁移前，`eTaskGetState()` 仍可能返回 `eBlocked`；最外层恢复后再参与正常调度。
+- 调度器挂起期间，事件项进入 `xPendingReadyList` 后，状态项暂留原链表。恢复迁移前，`eTaskGetState()` 仍可能返回 `eBlocked`。
 - 启用任务删除功能时，待清理链表中的任务以及状态项容器为空的相应删除路径可返回 `eDeleted`，查询要求 TCB 仍然有效。
 
 ### 状态迁移

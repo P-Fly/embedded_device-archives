@@ -46,7 +46,7 @@ void vTaskResume( TaskHandle_t xTaskToResume );
 
 ### 功能
 
-在 ISR 中恢复经 `vTaskSuspend()` 显式挂起的任务。只能从允许调用内核 `FromISR` 接口的中断优先级使用，并满足所用 port 的中断屏蔽规则。
+在 ISR 中恢复经 `vTaskSuspend()` 显式挂起的任务。
 
 调度器未挂起时，目标直接进入就绪态；若调度器正在挂起，内核将目标事件项加入 `xPendingReadyList`，由调度器恢复流程完成就绪迁移。这里的恢复请求同样不会累计。
 
@@ -66,18 +66,15 @@ BaseType_t xTaskResumeFromISR( TaskHandle_t xTaskToResume );
 
 `pdTRUE` 表示 ISR 应请求一次上下文切换；在调度器未挂起且成功恢复目标的路径上，目标优先级高于或等于被中断任务的优先级时返回 `pdTRUE`。其余路径返回 `pdFALSE`。这不是“恢复是否成功”的状态码：成功恢复较低优先级任务，或把恢复操作延后到调度器恢复时处理，也会返回 `pdFALSE`。
 
-以 `portable/RVDS/ARM_CM4F` 为例，ISR 中将返回值存入 `xYieldRequired`，结束前调用 `portYIELD_FROM_ISR(xYieldRequired)`。它经 `portEND_SWITCHING_ISR()` 在标志非 `pdFALSE` 时设置 PendSV pending；接口返回和设置 pending 都不表示任务已在 ISR 内立即开始运行，实际切换还受异常优先级、中断屏蔽和调度器状态影响。其他 port 应使用各自定义的 ISR yield 形式。
-
-这个接口直接返回切换标志，没有 `pxHigherPriorityTaskWoken` 输出参数。若 ISR 内还调用其他唤醒接口，应把它们的切换需求合并，保留已经为真的结果，不能被后续一次 `pdFALSE` 覆盖。
-
 ## 配置与调用边界
 
-| 接口 | 所需配置与上下文 |
-| --- | --- |
-| `vTaskSuspend()` / `vTaskResume()` | `INCLUDE_vTaskSuspend = 1`；任务上下文。 |
-| `xTaskResumeFromISR()` | 同时要求 `INCLUDE_vTaskSuspend = 1` 和 `INCLUDE_xTaskResumeFromISR = 1`；ISR 上下文。 |
+| 接口 | 所需配置 | 上下文 |
+| --- | --- | --- |
+| `vTaskSuspend()` | `INCLUDE_vTaskSuspend = 1` | 任务上下文 |
+| `vTaskResume()` | `INCLUDE_vTaskSuspend = 1` | 任务上下文 |
+| `xTaskResumeFromISR()` | 同时要求 `INCLUDE_vTaskSuspend = 1` 和 `INCLUDE_xTaskResumeFromISR = 1` | ISR 上下文 |
 
-自挂起可能导致任务切换，不能放在应用临界区或调度器挂起区间内。任务句柄和目标生命周期也必须由应用协调，不能用已经删除或失效的句柄恢复任务。
+自挂起可能导致任务切换，不能放在应用临界区或调度器挂起区间内。不能用已经删除或失效的句柄恢复任务。
 
 ## 源码出处
 

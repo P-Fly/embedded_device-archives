@@ -1,12 +1,12 @@
 # 系统节拍与 SysTick
 
-SysTick 作为系统节拍源时，调度器未挂起的情况下，内核在每个节拍到来后更新 tick 计数，检查是否有延时到期的任务需要**解除阻塞并进入就绪态**，并判断是否需要请求任务切换。
+SysTick 作为系统节拍源时，调度器未挂起的情况下，内核在每个节拍到来后更新 tick 计数，检查是否有延时到期的任务需要解除阻塞并进入就绪态，并判断是否需要请求任务切换。
 
 任务主动让出处理器、进入阻塞状态，或中断解除其他任务的阻塞时，也可能触发任务切换。
 
 ## SysTick 配置
 
-`portable/RVDS/ARM_CM4F` 的默认 `vPortSetupTimerInterrupt()` 实现使用以下宏配置周期性节拍：
+`vPortSetupTimerInterrupt()` 实现使用以下宏配置周期性节拍：
 
 | 配置项 | 含义 |
 | --- | --- |
@@ -21,7 +21,7 @@ SysTick 作为系统节拍源时，调度器未挂起的情况下，内核在每
 | 未定义 `configSYSTICK_CLOCK_HZ` | `CLKSOURCE = 1`，处理器时钟 | `configCPU_CLOCK_HZ` |
 | 已定义 `configSYSTICK_CLOCK_HZ` | `CLKSOURCE = 0`，芯片提供的另一条 SysTick 输入 | `configSYSTICK_CLOCK_HZ` |
 
-宏的数值必须匹配所选输入；芯片时钟树由平台初始化代码配置。其他 port 或应用自定义的节拍初始化，应以各自的定时器配置为准。
+宏的数值必须匹配所选输入，芯片时钟树由平台初始化代码配置。
 
 ### 重装值与节拍周期
 
@@ -41,7 +41,7 @@ SysTick 计数器为 24 位，`LOAD` 的最大值为 `0xFFFFFF`。配置时需�
 
 ### STM32WB55 时钟示例
 
-下图中，STM32WB55 的 CPU1 使用 HCLK1，SysTick 的处理器时钟输入也来自 HCLK1；另一条输入来自 HCLK1/8。这个分频关系由该芯片实现决定。
+下图中，STM32WB55 的 CPU1 使用 HCLK1，SysTick 的处理器时钟输入也来自 HCLK1；另一条输入来自 HCLK1/8。
 
 ![Clock Tree][1]
 
@@ -56,7 +56,7 @@ SysTick 计数器为 24 位，`LOAD` 的最大值为 `0xFFFFFF`。配置时需�
 
 ### 功能
 
-上述 Cortex-M4F port 在中断屏蔽保护下执行 `xTaskIncrementTick()`；其返回非零时置位 PendSV 的 pending 请求，由 PendSV 处理上下文切换。PendSV 的实际响应时机还受异常优先级及屏蔽状态影响。
+在中断屏蔽保护下执行 `xTaskIncrementTick()`；其返回非零时置位 PendSV 的 pending 请求，由 PendSV 处理上下文切换。PendSV 的实际响应时机还受异常优先级及屏蔽状态影响。
 
 ### 原型
 

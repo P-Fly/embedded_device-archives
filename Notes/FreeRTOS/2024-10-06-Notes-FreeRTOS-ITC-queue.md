@@ -1,6 +1,6 @@
 # 队列
 
-队列用于任务之间、ISR 与任务之间传递固定大小的消息项。队尾发送和队首接收组成 FIFO，也可以将新项发送到队首。内核负责同步队列操作；多任务分别发送或接收时，各项操作按实际执行顺序完成。
+队列用于任务之间、ISR 与任务之间传递固定大小的消息项。队尾发送和队首接收组成 FIFO，也可以将新项发送到队首。
 
 ![Queue Animation][1]
 
@@ -8,15 +8,15 @@
 
 大消息可以通过指针项传递。此时队列只复制指针值，发送参数应指向保存该指针值的变量；指向的对象必须在消费者使用期间保持有效。对象的所有权、并发访问和释放由应用协调，发送成功不表示消费者已处理完成。
 
-队列可以使用动态或静态存储。采用 MPU port 时，对内核对象和传入缓冲区的权限检查由相应 port、wrapper 与配置决定。
+队列可以使用动态或静态存储。
 
-任务使用普通收发接口，ISR 使用该接口明确支持的 `FromISR` 版本，并满足 port 的中断优先级限制。等待时间和任务唤醒标志的含义分别见收发章节。
+任务使用普通收发接口，ISR 使用该接口明确支持的 `FromISR` 版本，并满足 port 的中断优先级限制。
 
 ## 主要数据结构
 
 ### Queue_t
 
-`Queue_t` 是内部队列控制结构，与消息数据区和等待任务链表共同组成队列。这里按 `queue.c` 中的用途解释字段；`pcHead`、`pcWriteTo` 是直接成员，`pcTail`、`pcReadFrom` 位于 `u.xQueue`，互斥量字段位于同一 union 的 `u.xSemaphore`。两组 union 成员复用空间，不能同时按两种对象解释。
+`Queue_t` 是内部队列控制结构，与消息数据区和等待任务链表共同组成队列：
 
 `int8_t *pcHead;`
 
@@ -88,14 +88,10 @@
 
 ## 创建队列
 
-| API | 实际调用函数 |
-| :--- | :--- |
-| `xQueueCreate` | `xQueueGenericCreate` |
-| `xQueueCreateStatic` | `xQueueGenericCreateStatic` |
-
-应用通过 `xQueueCreate()` 或 `xQueueCreateStatic()` 创建普通队列，内部通用函数还服务于其他对象类型。动态创建要求 `configSUPPORT_DYNAMIC_ALLOCATION == 1`，静态创建要求 `configSUPPORT_STATIC_ALLOCATION == 1`。
-
-动态队列一次分配控制结构和数据区，数据区大小为 `uxQueueLength * uxItemSize` 字节；实现会检查容量、乘法及加法溢出，并处理分配失败。静态队列由应用提供 `StaticQueue_t` 和足够大的数据缓冲区，两者须在队列有效期间保持有效。创建成功返回队列句柄，失败返回 `NULL`；无效参数应先由应用排除，启用断言可辅助检查。
+| API | 实际调用函数 | 使用条件 |
+| :--- | :--- | :--- |
+| `xQueueCreate` | `xQueueGenericCreate` | `configSUPPORT_DYNAMIC_ALLOCATION == 1` |
+| `xQueueCreateStatic` | `xQueueGenericCreateStatic` | `configSUPPORT_STATIC_ALLOCATION == 1` |
 
 ### xQueueGenericCreate
 
@@ -115,7 +111,7 @@ QueueHandle_t xQueueGenericCreate( const UBaseType_t uxQueueLength,
 
 ![xQueueCreate Sequence][2]
 
-### 创建初始化与重置
+#### 创建初始化与重置
 
 `prvInitialiseNewQueue()` 调用 `xQueueGenericReset()` 初始化消息计数、环形读写位置和锁状态。新队列还会初始化两条等待链表，此时没有已阻塞的使用者。
 
@@ -123,7 +119,7 @@ QueueHandle_t xQueueGenericCreate( const UBaseType_t uxQueueLength,
 
 队列项含指针时，重置不会释放指向的对象。应用应先安排清理或所有权转移，避免丢失最后一个引用。
 
-下图表示非零项大小的动态队列初始化后的控制结构与数据区关系，字段按用途展开，实际 union 和条件字段布局见对应源码。静态创建时，控制结构和数据区由应用分别提供。
+下图表示非零项大小的动态队列初始化后的控制结构与数据区关系，字段按用途展开。
 
 ![xQueueCreate Structure][3]
 
@@ -140,9 +136,13 @@ QueueHandle_t xQueueGenericCreate( const UBaseType_t uxQueueLength,
 | `xQueueOverwriteFromISR` | `xQueueGenericSendFromISR` | 写入并替换已有值 | 仅用于长度为 1 的队列，不阻塞 |
 | `xQueueSendFromISR` | `xQueueGenericSendFromISR` | 从队尾入队 | 保留的兼容别名，与 `xQueueSendToBackFromISR` 等价 |
 
-覆盖接口用于保存单个最新值：队列为空时新增一项，已有一项时替换旧值，消息计数保持为 1。应用需允许旧值被丢弃；项为指针时，还需安排被替换对象的所有权和回收。
+覆盖接口用于保存单个最新值：队列为空时新增一项，已有一项时替换旧值，消息计数保持为 1。
 
 ### xQueueGenericSend
+
+![xQueueGenericSend Sequence][4]
+
+#### 原型
 
 ```c
 BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
@@ -151,14 +151,18 @@ BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
                               const BaseType_t xCopyPosition )
 ```
 
+#### 参数
+
 - `xQueue`：有效队列句柄。
 - `pvItemToQueue`：待复制项的地址，缓冲区至少包含 `uxItemSize` 字节，调用期间保持有效；若调用阻塞，返回前也应保持内容稳定。
 - `xTicksToWait`：队列满时允许等待的 tick 数，0 表示立即尝试；不是毫秒数。
 - `xCopyPosition`：由公开宏指定 `queueSEND_TO_BACK`、`queueSEND_TO_FRONT` 或 `queueOVERWRITE`。
 
+#### 返回值
+
 发送成功返回 `pdPASS`；普通发送在零等待且队列满，或等待期限耗尽后仍不能发送时返回 `errQUEUE_FULL`。长度为 1 的合法覆盖发送不因队列已有值而等待。
 
-### 阻塞发送与调度
+#### 阻塞发送与调度
 
 以下按普通数据队列说明，不展开队列集及互斥量分支：
 
@@ -178,12 +182,18 @@ BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
 
 ### xQueueGenericSendFromISR
 
+![xQueueGenericSendFromISR Sequence][5]
+
+#### 原型
+
 ```c
 BaseType_t xQueueGenericSendFromISR( QueueHandle_t xQueue,
                                      const void * const pvItemToQueue,
                                      BaseType_t * const pxHigherPriorityTaskWoken,
                                      const BaseType_t xCopyPosition )
 ```
+
+#### 参数
 
 - `xQueue`：有效队列句柄。
 - `pvItemToQueue`：待复制项的地址，调用期间须可访问并包含完整项。
@@ -192,7 +202,7 @@ BaseType_t xQueueGenericSendFromISR( QueueHandle_t xQueue,
 
 ISR 发送立即尝试，成功返回 `pdPASS`，普通发送遇满队列返回 `errQUEUE_FULL`。发送成功只表示数据已复制，不保证唤醒了任务。队列未锁时可处理接收等待链表；锁定期间先记录发送事件，延后到解锁处理。
 
-### ISR 唤醒标志
+#### ISR 唤醒标志
 
 在一次 ISR 的首次相关调用前，将 `xHigherPriorityTaskWoken` 初始化为 `pdFALSE`。API 只在需要时置为 `pdTRUE`，多次收发之间保留累计结果；退出 ISR 前用该结果调用 port 规定的 `portYIELD_FROM_ISR()`。
 
@@ -207,9 +217,13 @@ API 返回值与唤醒标志分别判断：返回值表示收发是否成功，�
 | `xQueueReceiveFromISR` | 复制队首项并移除该项 | ISR，不阻塞 |
 | `xQueuePeekFromISR` | 复制队首项并保留该项 | ISR，不阻塞 |
 
-任务接收或查看成功返回 `pdPASS`；零等待且队列为空，或等待期限耗尽后仍为空时返回 `errQUEUE_EMPTY`。ISR 接口没有等待时间参数，成功返回 `pdPASS`，遇空队列立即返回 `pdFAIL`。失败时没有取得有效的新消息，应用应先判断返回值再使用缓冲区。
+任务接收或查看成功返回 `pdPASS`；零等待且队列为空，或等待期限耗尽后仍为空时返回 `errQUEUE_EMPTY`。ISR 接口没有等待时间参数，成功返回 `pdPASS`，遇空队列立即返回 `pdFAIL`。
 
 ### xQueueReceive
+
+![xQueueReceive Sequence][6]
+
+#### 原型
 
 ```c
 BaseType_t xQueueReceive( QueueHandle_t xQueue,
@@ -217,9 +231,13 @@ BaseType_t xQueueReceive( QueueHandle_t xQueue,
                           TickType_t xTicksToWait )
 ```
 
+#### 参数
+
 - `xQueue`：有效队列句柄。
 - `pvBuffer`：接收缓冲区，至少可写入 `uxItemSize` 字节；调用阻塞时也须保持有效。
 - `xTicksToWait`：队列空时允许等待的 tick 数，0 表示立即尝试；超时和无限等待规则与发送接口相同。
+
+#### 阻塞接收与调度
 
 | 条件或阶段 | 处理 |
 | --- | --- |
@@ -239,15 +257,23 @@ BaseType_t xQueueReceive( QueueHandle_t xQueue,
 
 ### xQueueReceiveFromISR
 
+![xQueueReceiveFromISR Sequence][7]
+
+#### 原型
+
 ```c
 BaseType_t xQueueReceiveFromISR( QueueHandle_t xQueue,
                                  void * const pvBuffer,
                                  BaseType_t * const pxHigherPriorityTaskWoken )
 ```
 
+#### 参数
+
 - `xQueue`：有效队列句柄。
 - `pvBuffer`：调用期间可写的接收缓冲区，至少容纳一个完整项。
 - `pxHigherPriorityTaskWoken`：可选输出标志指针；解除更高优先级发送等待者的阻塞时，API 将其指向的值设为 `pdTRUE`。初始化、累计及 ISR yield 规则见前文。
+
+#### 返回值
 
 接收成功后减少消息计数。队列未锁时可处理发送等待链表；锁定期间先记录接收事件，延后到解锁处理。返回 `pdPASS` 不表示一定唤醒了任务，唤醒标志也不能代替接收结果。
 
@@ -255,15 +281,19 @@ BaseType_t xQueueReceiveFromISR( QueueHandle_t xQueue,
 
 ### vQueueDelete
 
+#### 原型
+
 ```c
 void vQueueDelete( QueueHandle_t xQueue )
 ```
 
+#### 参数
+
 - `xQueue`：待删除的有效队列句柄；在任务上下文调用。
 
-删除前，应用必须确保没有任务阻塞等待该队列，并停止所有任务和 ISR 对它的访问。`vQueueDelete()` 不负责通知或解除等待者，也不替应用协调仍在进行的收发操作；可以通过退出消息、应用同步及停止相关中断源等方式先结束使用。
+#### 前提条件
 
-动态创建的队列释放其控制结构和数据区所用的内存；静态创建的队列不释放应用提供的存储。两种情况下，删除后原句柄都不再有效，内核不会自动清空应用保存的句柄副本。队列中若保存指针，指向的对象也不会被自动释放，应用需在删除前完成所有权转移或清理。
+删除前，应用必须确保没有任务阻塞等待该队列，并停止所有任务和 ISR 对它的访问。`vQueueDelete()` 不负责通知或解除等待者，也不替应用协调仍在进行的收发操作；可以通过退出消息、应用同步及停止相关中断源等方式先结束使用。
 
 ## 队列锁与同步
 
@@ -283,7 +313,7 @@ void vQueueDelete( QueueHandle_t xQueue )
 
 `prvUnlockQueue()` 在调度器仍挂起时，按计数及实际等待者处理延后的事件，再把锁恢复为未锁状态。此时解除阻塞的任务通过待就绪链表暂存；真正迁移到就绪链表并决定是否切换，由后续 `xTaskResumeAll()` 完成。
 
-因此，队列锁保护的是事件处理时序，调度器挂起保护的是任务调度过程，短临界区负责相应共享数据访问。应用不应把内部队列锁当作可调用的同步接口。
+因此，队列锁保护的是事件处理时序，调度器挂起保护的是任务调度过程，短临界区负责相应共享数据访问。
 
 ## 源码参考
 
@@ -294,3 +324,7 @@ void vQueueDelete( QueueHandle_t xQueue )
  [1]: ./images/queue_animation.gif
  [2]: ./images/xQueueCreate.jpg
  [3]: ./images/xQueueCreate_Structure.jpg
+ [4]: ./images/xQueueGenericSend.jpg
+ [5]: ./images/xQueueGenericSendFromISR.jpg
+ [6]: ./images/xQueueReceive.jpg
+ [7]: ./images/xQueueReceiveFromISR.jpg

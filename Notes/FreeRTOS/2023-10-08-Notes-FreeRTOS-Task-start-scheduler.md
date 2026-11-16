@@ -6,8 +6,6 @@
 
 启动内核调度器，使就绪任务开始按调度规则运行。应用应在启动前完成必要的硬件初始化和任务创建，并从主程序的 Thread mode 调用此接口。
 
-以下寄存器操作和汇编对应 `portable/RVDS/ARM_CM4F`：使用 Cortex-M4F、非 MPU port 和 Arm Compiler 5 的汇编语法，并要求编译目标启用硬件浮点。启动入口应处于特权 Thread mode，SVC、PendSV 和 SysTick 的异常入口应连接到对应 port 处理函数。
-
 ### 原型
 
 ```c
@@ -18,10 +16,12 @@ void vTaskStartScheduler( void );
 
 | 阶段 | 主要工作 |
 | --- | --- |
-| `vTaskStartScheduler()` | 创建 Idle 任务；启用软件定时器时创建定时器服务任务；设置中断屏蔽和内核运行状态 |
+| `vTaskStartScheduler()` | 创建 Idle 任务，启用软件定时器时创建定时器服务任务，设置中断屏蔽和内核运行状态 |
 | `xPortStartScheduler()` | 检查优先级配置，设置 PendSV/SysTick 优先级，初始化节拍中断、临界区计数和浮点支持 |
 | `prvStartFirstTask()` | 从向量表恢复 MSP，设置 CONTROL 和中断屏蔽状态，通过 SVC 进入首次上下文恢复 |
 | `vPortSVCHandler()` | 恢复当前任务的软件保存块，设置 PSP，通过异常返回进入任务入口 |
+
+![vTaskStartScheduler][1]
 
 #### 创建内核任务
 
@@ -87,6 +87,8 @@ Cortex-M 的中断嵌套受抢占优先级、优先级分组和屏蔽寄存器�
 | 紧急度高于阈值的外部中断 | 不调用 FreeRTOS API，其与任务或内核共享数据时需要独立的同步设计 |
 | SVC | 首次启动时必须不受 BASEPRI 阈值屏蔽；此 port 不设置其优先级，保留复位默认值 0 可满足这一要求 |
 
+![Interrupt Priority][4]
+
 PendSV 和 SysTick 的优先级写入 SHPR3 对应字段：
 
 ```c
@@ -117,7 +119,7 @@ VTOR 保存当前向量表的基地址，向量表第一个 32 位字保存初�
 
 ![VTOR 寄存器][5]
 
-系统栈一般在启动文件或链接脚本中定义，例如 Keil 工程启动文件中的 `Stack_Size`。本 port 启动后的栈用途如下：
+系统栈一般在启动文件或链接脚本中定义，例如 Keil 工程启动文件中的 `Stack_Size`。启动后的栈用途如下：
 
 | 场景 | 使用的栈 |
 | --- | --- |
@@ -187,7 +189,7 @@ mov r0, #0
 msr basepri, r0
 ```
 
-BASEPRI 清零，取消该优先级阈值屏蔽。具体异常能否激活，仍由其使能状态、当前执行优先级及其他架构条件共同决定。
+BASEPRI 清零，取消该优先级阈值屏蔽。
 
 ```asm
 bx r14
@@ -197,7 +199,7 @@ bx r14
 
 ### 首次启动的寄存器状态
 
-下表描述初始基本帧路径，不包含更高紧急度异常插入时的瞬时状态。`栈顶` 表示首次任务的 `pxTopOfStack` 字节地址。
+下表描述初始基本帧路径，`栈顶` 表示首次任务的 `pxTopOfStack` 字节地址。
 
 | 阶段 | MSP | PSP | CONTROL | BASEPRI | EXC_RETURN |
 | --- | --- | --- | --- | --- | --- |
@@ -210,15 +212,17 @@ bx r14
 
 ### 功能
 
-请求结束调度器，实际支持取决于 port。本文的 `portable/RVDS/ARM_CM4F` 未实现结束调度器并恢复启动前执行环境的流程。
-
-`vTaskEndScheduler()` 设置中断优先级屏蔽、将调度器运行标志清零，然后调用 `vPortEndScheduler()`。该 port 的后者只有用于提示不支持操作的断言，没有停止节拍计数器、恢复主程序上下文或自动清理所有任务资源的实现。需要停止业务时，应由应用协调任务和外设的退出，不能依赖此接口返回启动前的主程序。
+停止内核调度器。
 
 ### 原型
 
 ```c
 void vTaskEndScheduler( void );
 ```
+
+### 流程
+
+`vTaskEndScheduler()` 设置中断优先级屏蔽、将调度器运行标志清零，然后调用 `vPortEndScheduler()`。
 
 ## 源码依据
 
@@ -227,7 +231,9 @@ void vTaskEndScheduler( void );
 - [portable/RVDS/ARM_CM4F/port.c](https://github.com/FreeRTOS/FreeRTOS-Kernel/blob/V10.5.1/portable/RVDS/ARM_CM4F/port.c)：优先级校验、首次 SVC、栈恢复、浮点设置和结束调度器的 port 实现。
 - [portable/RVDS/ARM_CM4F/portmacro.h](https://github.com/FreeRTOS/FreeRTOS-Kernel/blob/V10.5.1/portable/RVDS/ARM_CM4F/portmacro.h)：BASEPRI 屏蔽操作。
 
+ [1]: ./images/vTaskStartScheduler.jpg
  [2]: ./images/basepri.jpg
  [3]: ./images/priority_value.jpg
+ [4]: ./images/interrupt_priority.jpg
  [5]: ./images/vtor_register.jpg
  [6]: ./images/exc_return_definition.jpg
