@@ -69,6 +69,7 @@
     - 内存安全
         - [Stack Canary 机制](Notes/MemorySafety/StackCanary/2026-11-12-Notes-MemorySafety-Stack-canary.md)
         - [如何检测栈溢出](Notes/MemorySafety/StackOverflowDetection/2024-11-09-Notes-MemorySafety-How-to-check-the-stack-overflow.md)
+        - [如何检测堆内存泄漏](Notes/MemorySafety/HeapLeakDetection/2026-11-17-Notes-MemorySafety-How-to-detect-heap-memory-leaks.md)
 
     - 设计方案
         - [如何压缩日志以减少数据传输](Notes/Design/LogCompression/2024-10-26-Notes-Design-How-to-compress-logs-to-reduce-data-transmission.md)
